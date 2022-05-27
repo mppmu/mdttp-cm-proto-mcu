@@ -1,0 +1,53 @@
+# File: .gitignore
+# Auth: M. Fras, Electronics Division, MPI for Physics, Munich
+# Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
+# Date: 08 Apr 2020
+# Rev.: 27 Aug 2020
+#
+# List of files to be ignored by git.
+#
+
+# This file itself.
+#.gitignore
+
+# Vi/Vim swap and backup files.
+.*.swp
+.*.swo
+*~
+
+# Other backup files.
+*.bac
+*.bak
+
+# Compiled firmware files.
+*.axf
+*.bin
+*.d
+*.o
+
+# Symbolic links.
+/Firmware/Projects/boot_loader/Common
+/Firmware/Projects/cm_mcu_hwtest/Common
+
+# Compiled TivaWare libraries.
+/Firmware/TivaWare/*/driverlib/ccs/
+/Firmware/TivaWare/*/driverlib/ewarm/
+/Firmware/TivaWare/*/driverlib/gcc/
+/Firmware/TivaWare/*/driverlib/rvmdk/
+/Firmware/TivaWare/*/grlib/ccs/
+/Firmware/TivaWare/*/grlib/ewarm/
+/Firmware/TivaWare/*/grlib/gcc/
+/Firmware/TivaWare/*/grlib/rvmdk/
+
+# Compiled python files.
+*.pyc
+__pycache__/
+
+# Compiled TivaWare tools.
+/Software/TivaWare/*/tools/sflash/sflash
+/Software/TivaWare/*/tools/bin
+
+# Log files and temporary directories of the hardware test tools.
+Software/HwTest/*/*.log
+Software/HwTest/*/tmp/
+
