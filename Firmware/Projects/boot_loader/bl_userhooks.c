@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 27 May 2022
+// Rev.: 03 Jun 2022
 //
 // User hook functions of the boot loader running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) MCU.
@@ -63,8 +63,8 @@ void BL_Reinit(void)
 // Informs an application that a download is starting.
 void BL_FwDownloadStart(void)
 {
-    // Switch on LED red 0 and red 1 to indicate activity.
-    GpioSet_LedMcuUser(g_ui16Led = LED_USER_RED_0 | LED_USER_RED_1);
+    // Switch on LED 8 (red) and 7 (red) to indicate activity.
+    GpioSet_LedMcuUser(g_ui16Led = LED_USER_8_RED | LED_USER_7_RED);
 }
 
 
@@ -73,9 +73,9 @@ void BL_FwDownloadStart(void)
 void BL_FwDownloadProgress(void)
 {
     // Counting LEDs execpt the read ones to indicate activity.
-    g_ui16Led &= ~(LED_USER_RED_1 | LED_USER_RED_0);    // Mask the red LEDs.
-    g_ui16Led += 0x1 << 2;                              // Add (1 << 2) to count on all other LEDs.
-    g_ui16Led |= LED_USER_RED_1 | LED_USER_RED_0;       // Switch on LED red 1 and red 0 to indicate activity.
+    g_ui16Led &= ~(LED_USER_8_RED | LED_USER_7_RED);    // Mask the red LEDs.
+    g_ui16Led += 0x1;                                   // Add 1 to count on all other LEDs.
+    g_ui16Led |= LED_USER_8_RED | LED_USER_7_RED;       // Switch on LED 8 (red) and 7 (red) to indicate activity.
     GpioSet_LedMcuUser(g_ui16Led);
 }
 
@@ -112,20 +112,20 @@ unsigned long BL_UserCheckUpdateHook(void)
         char pcTimeoutStr[10];
         usprintf(pcTimeoutStr, "%d ", i);
         UARTprint(UARTx_BASE, pcTimeoutStr);
-        // Blink the LED red 1 with 1 second period.
+        // Blink the LED 7 (red) with 1 second period.
         DelayUs(5e5);
-        GpioSet_LedMcuUser(g_ui16Led |= LED_USER_RED_1);
+        GpioSet_LedMcuUser(g_ui16Led |= LED_USER_7_RED);
         // Character received on the UART.
         if (UARTCharsAvail(UARTx_BASE)) break;
         DelayUs(5e5);
-        GpioSet_LedMcuUser(g_ui16Led &= ~LED_USER_RED_1);
+        GpioSet_LedMcuUser(g_ui16Led &= ~LED_USER_7_RED);
         // Character received on the UART.
         if (UARTCharsAvail(UARTx_BASE)) break;
     }
     // Enter the boot loader menu.
     if (UARTCharsAvail(UARTx_BASE)) {
-        // Turn on the LED red 1 to indicate that the boot loader is active.
-        GpioSet_LedMcuUser(g_ui16Led |= LED_USER_RED_1);
+        // Turn on the LED 7 (red) to indicate that the boot loader is active.
+        GpioSet_LedMcuUser(g_ui16Led |= LED_USER_7_RED);
 
         // A return value of 1 freezes the boot loader. The reason is unknown.
         //return BL_UserMenu(UARTx_BASE);

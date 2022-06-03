@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 27 May 2022
+// Rev.: 03 Jun 2022
 //
 // User functions of the boot loader running on the ATLAS MDT Trigger Processor
 // (TP) Command Module (CM) prototype MCU.
@@ -89,14 +89,13 @@ int UserHwInit(void)
 
     // Initialize the LEDs.
     GpioInit_LedMcuUser();
-    // Switch on LED red 0 to indicate activity.
-    GpioSet_LedMcuUser(g_ui16Led = LED_USER_RED_0);
+    // Switch on LED 8 red to indicate activity.
+    GpioSet_LedMcuUser(g_ui16Led = LED_USER_8_RED);
 
     // Initialize the power control GPIO pins on the CM to switch off all
     // switchabel power domains.
-//  TODO
-//    GpioInit_PowerCtrl();
-//    GpioSet_PowerCtrl(0);
+    GpioInit_PowerCtrl();
+    GpioSet_PowerCtrl(0x00);
 
     // Initialize the UART 5, which is connected to the SM SoC.
     #ifdef MDTTP_CM_MCU_BL_UART_FRONTPANEL
