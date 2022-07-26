@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 07 Jun 2022
+// Rev.: 26 Jul 2022
 //
 // Power control functions for the hardware test firmware running on the ATLAS
 // MDT Trigger Processor (TP) Command Module (CM) prototype MCU.
@@ -51,10 +51,10 @@ int PowerControl(char *pcCmd, char *pcParam)
         status = PowerControl_All(bPowerSet, ui32PowerVal);
     } else if (!strcasecmp(pcPowerDomain, "clock")) {
         status = PowerControl_ClockMisc(bPowerSet, ui32PowerVal);
-    } else if (!strcasecmp(pcPowerDomain, "firefly")) {
-        status = PowerControl_FireFly(bPowerSet, ui32PowerVal);
     } else if (!strcasecmp(pcPowerDomain, "fpga")) {
         status = PowerControl_FPGA(bPowerSet, ui32PowerVal);
+    } else if (!strcasecmp(pcPowerDomain, "firefly")) {
+        status = PowerControl_FireFly(bPowerSet, ui32PowerVal);
     } else {
         UARTprintf("%s: Unknown power domains `%s'!\n", UI_STR_ERROR, pcPowerDomain);
         PowerControlHelp();
@@ -202,7 +202,7 @@ int PowerControl_FPGA(bool bPowerSet, uint32_t ui32PowerVal)
         }
     }
 
-    // Power down the KU15P.
+    // Power down the FPGA.
     if (ui32PowerVal == 0) {
         // Power down the IO voltage first.
         ui32GpioGet = GpioGet_PowerCtrl();
