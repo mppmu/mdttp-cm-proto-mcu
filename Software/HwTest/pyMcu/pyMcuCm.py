@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 01 Aug 2022
+# Rev.: 04 Aug 2022
 #
 # Python script to access the ATLAS MDT Trigger Processor (TP) Command Module
 # (CM) Prototype via the TI Tiva TM4C1290 MCU.
@@ -44,9 +44,11 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Run an automated set of MCU tests.')
     parser.add_argument('-c', '--command', action='store', type=str,
-                        choices=['power_up', 'power_down', 'sn', 'status', 'mon_temp',
+                        choices=['power_up', 'power_down', 'power_detail',
+                                 'sn', 'status', 'mon_temp',
                                  'mcu_cmd_raw', 'mcu_led_user',
-                                 'i2c_reset', 'i2c_detect'],
+                                 'i2c_reset', 'i2c_detect',
+                                 'pm_status', 'pm_status_raw'],
                         dest='command', default='status',
                         help='Command to execute on the CM.')
     parser.add_argument('-d', '--device', action='store', type=str,
@@ -75,6 +77,8 @@ if __name__ == "__main__":
         mdtTp_CM.power_up()
     elif command == "power_down":
         mdtTp_CM.power_down()
+    elif command == "power_detail":
+        mdtTp_CM.power_status_detail()
     elif command == "sn":
         mdtTp_CM.serial_number()
     elif command == "status":
@@ -113,6 +117,10 @@ if __name__ == "__main__":
         mdtTp_CM.i2c_reset()
     elif command == "i2c_detect":
         mdtTp_CM.i2c_detect_devices()
+    elif command == "pm_status":
+        mdtTp_CM.power_module_status()
+    elif command == "pm_status_raw":
+        mdtTp_CM.power_module_status_raw()
     else:
         print(prefixError + "Command `{0:s}' not supported!".format(command))
 
