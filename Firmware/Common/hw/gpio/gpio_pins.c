@@ -352,15 +352,15 @@ void GpioInit_LedMcuUser(void)
 // Set the MCU user LEDs.
 void GpioSet_LedMcuUser(uint32_t ui32Val)
 {
-    GpioOutputSetBool(&g_sGpio_LedMcuUser0, (bool) (ui32Val & 0x001));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser1, (bool) (ui32Val & 0x002));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser2, (bool) (ui32Val & 0x004));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser3, (bool) (ui32Val & 0x008));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser4, (bool) (ui32Val & 0x010));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser5, (bool) (ui32Val & 0x020));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser6, (bool) (ui32Val & 0x040));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser7, (bool) (ui32Val & 0x080));
-    GpioOutputSetBool(&g_sGpio_LedMcuUser8, (bool) (ui32Val & 0x100));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser0, ! (bool) (ui32Val & 0x001));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser1, ! (bool) (ui32Val & 0x002));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser2, ! (bool) (ui32Val & 0x004));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser3, ! (bool) (ui32Val & 0x008));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser4, ! (bool) (ui32Val & 0x010));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser5, ! (bool) (ui32Val & 0x020));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser6, ! (bool) (ui32Val & 0x040));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser7, ! (bool) (ui32Val & 0x080));
+    GpioOutputSetBool(&g_sGpio_LedMcuUser8, ! (bool) (ui32Val & 0x100));
 }
 
 // Read back the MCU user LEDs.
@@ -368,15 +368,15 @@ uint32_t GpioGet_LedMcuUser(void)
 {
     uint32_t ui32Val = 0;
 
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser0) & 0x1) << 0;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser1) & 0x1) << 1;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser2) & 0x1) << 2;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser3) & 0x1) << 3;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser4) & 0x1) << 4;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser5) & 0x1) << 5;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser6) & 0x1) << 6;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser7) & 0x1) << 7;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_LedMcuUser8) & 0x1) << 8;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser0) & 0x1)) << 0;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser1) & 0x1)) << 1;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser2) & 0x1)) << 2;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser3) & 0x1)) << 3;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser4) & 0x1)) << 4;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser5) & 0x1)) << 5;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser6) & 0x1)) << 6;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser7) & 0x1)) << 7;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_LedMcuUser8) & 0x1)) << 8;
 
     return ui32Val;
 }
