@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 07 Jun 2022
+// Rev.: 11 Aug 2022
 //
 // IO peripheral definitions of the firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -85,6 +85,9 @@ tUartUi g_sUartUi5 = {
 // ******************************************************************
 // I2C masters.
 // ******************************************************************
+
+// List of valied I2C master ports.
+uint8_t g_ui8I2CMasterPorts[I2C_MASTER_NUM] = {1, 2, 3, 4, 5, 6, 7, 8};
 
 // Array of all I2C master ports.
 tI2C g_psI2C[I2C_MASTER_NUM] = {

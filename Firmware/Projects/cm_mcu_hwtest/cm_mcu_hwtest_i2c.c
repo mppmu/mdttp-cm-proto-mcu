@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 03 Jun 2022
+// Rev.: 11 Aug 2022
 //
 // I2C functions of the hardware test firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -148,12 +148,28 @@ void I2CAccessHelp(void)
 // Check if the I2C port number is valid. If so, set the psI2C pointer to the selected I2C port struct.
 int I2CPortCheck(uint8_t ui8I2CPort, tI2C **psI2C)
 {
-    if ((ui8I2CPort < 0) || (ui8I2CPort > I2C_MASTER_NUM - 1)) {
+    int i;
+    bool bI2CPortValid = false;
+    uint8_t ui8I2CPortIdx;
+
+    // Valid I2C ports on the CM prototype: 1 .. 8
+    // The ports 0 and 9 are unused.
+    for (i = 0; i < I2C_MASTER_NUM; i++) {
+        if (ui8I2CPort == g_ui8I2CMasterPorts[i]) {
+            bI2CPortValid = true;
+            ui8I2CPortIdx = i;
+            break;
+        }
+    }
+    if (!bI2CPortValid) {
         *psI2C = NULL;
-        UARTprintf("%s: Only I2C port numbers 0..%d are supported!", UI_STR_ERROR, I2C_MASTER_NUM - 1);
+        UARTprintf("%s: Invalid I2C port number %d! Valid I2C ports are:", UI_STR_ERROR, ui8I2CPort);
+        for (i = 0; i < I2C_MASTER_NUM; i++) {
+            UARTprintf(" %d", g_ui8I2CMasterPorts[i]);
+        }
         return -1;
     } else {
-        *psI2C = &g_psI2C[ui8I2CPort];
+        *psI2C = &g_psI2C[ui8I2CPortIdx];
     }
     return 0;
 }
