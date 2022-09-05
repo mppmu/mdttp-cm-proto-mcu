@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 11 Aug 2022
+// Rev.: 05 Sep 2022
 //
 // IO peripheral definitions of the firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -169,7 +169,7 @@ tI2C g_psI2C[I2C_MASTER_NUM] = {
         100                     // ui32Timeout
     },
     {
-        // I2C master 5: MISC (Control ans status signals of FireFly modules via 4 x PCA9535BS I2C GPIO expanders).
+        // I2C master 5: MISC (Control and status signals of FireFly modules via 4 x PCA9535BS I2C GPIO expanders).
         // GPIO Pins:
         // - SCL: PB0/USB0ID, 95
         // - SDA: PB1/USB0VBUS, 96
