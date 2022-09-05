@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 04 Aug 2022
+# Rev.: 05 Sep 2022
 #
 # Python script to access the ATLAS MDT Trigger Processor (TP) Command Module
 # (CM) Prototype via the TI Tiva TM4C1290 MCU.
@@ -48,7 +48,8 @@ if __name__ == "__main__":
                                  'sn', 'status', 'mon_temp',
                                  'mcu_cmd_raw', 'mcu_led_user',
                                  'i2c_reset', 'i2c_detect',
-                                 'pm_status', 'pm_status_raw'],
+                                 'pm_status', 'pm_status_raw',
+                                 'clk_setup'],
                         dest='command', default='status',
                         help='Command to execute on the CM.')
     parser.add_argument('-d', '--device', action='store', type=str,
@@ -121,6 +122,15 @@ if __name__ == "__main__":
         mdtTp_CM.power_module_status()
     elif command == "pm_status_raw":
         mdtTp_CM.power_module_status_raw()
+    elif command == "clk_setup":
+        if commandParameters:
+            if len(commandParameters) != 2:
+                print(prefixError, "Please specify the clock IC number and the register map file.")
+                print(prefixError, "E.g.: -p IC1 config/clock/Pro_Design/IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
+            else:
+                mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
+        else:
+            mdtTp_CM.clk_prog_all()
     else:
         print(prefixError + "Command `{0:s}' not supported!".format(command))
 

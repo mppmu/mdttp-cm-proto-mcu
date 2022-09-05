@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 04 Aug 2022
+# Rev.: 05 Sep 2022
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -233,12 +233,13 @@ class MdtTp_CM:
 
     # Initialize the I2C busses and devices.
     def init_hw_i2c(self):
-        # I2C buses.
+        # Defile all I2C buses.
         self.mcuI2C = []
         for i in range(0, self.i2cBusNum):
             self.mcuI2C.append(McuI2C.McuI2C(self.mcuSer, i))
             self.mcuI2C[i].debugLevel = self.debugLevel
-            # Reset the I2C bus.
+        # Reset all active I2C buses.
+        for i in self.i2cBusActive:
             self.mcuI2C[i].ms_reset_bus()
 
         # IC22: DS28CM00 silicon serial number IC.
@@ -265,35 +266,96 @@ class MdtTp_CM:
         self.i2cDevice_IC62_MCP9902.write_config_1(0x00)
 
         # Power modules.
-        # IC58: LTC2977 8-channel PMBus power system manager IC (1.8 V FPGA, 1.2 V MGT, 0.9 V MGT).
-        self.i2cDevice_IC58_LTC2977 = I2C_LTC2977.I2C_LTC2977(self.mcuI2C[1], 0x5c, "IC58 (LTC2977)")
-        # IC59: LTC2977 8-channel PMBus power system manager IC (1.8 V misc, 3.3 V misc, 5.0 V misc, 3.3. V FireFly).
-        self.i2cDevice_IC59_LTC2977 = I2C_LTC2977.I2C_LTC2977(self.mcuI2C[1], 0x5d, "IC59 (LTC2977)")
         # IC26: LTM4700 regulator with digital power system management IC (VU13P core voltage).
         self.i2cDevice_IC26_LTM4700 = I2C_LTM4700.I2C_LTM4700(self.mcuI2C[1], 0x40, "IC26 (LTM4700)")
         # IC27: LTM4700 regulator with digital power system management IC (VU13P core voltage).
         self.i2cDevice_IC27_LTM4700 = I2C_LTM4700.I2C_LTM4700(self.mcuI2C[1], 0x41, "IC27 (LTM4700)")
+        # IC58: LTC2977 8-channel PMBus power system manager IC (1.8 V FPGA, 1.2 V MGT, 0.9 V MGT).
+        self.i2cDevice_IC58_LTC2977 = I2C_LTC2977.I2C_LTC2977(self.mcuI2C[1], 0x5c, "IC58 (LTC2977)")
+        # IC59: LTC2977 8-channel PMBus power system manager IC (1.8 V misc, 3.3 V misc, 5.0 V misc, 3.3. V FireFly).
+        self.i2cDevice_IC59_LTC2977 = I2C_LTC2977.I2C_LTC2977(self.mcuI2C[1], 0x5d, "IC59 (LTC2977)")
+
+        # I2C mux for clock I2C bus:
+        # IC36 (PCA9545APW): I2C port 3, slave address 0x70.
+        self.i2cDevice_IC36_PCA9545APW = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[3], 0x70, "IC36 (PCA9545APW)")
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        # I2C clock devices.
+        # IC1 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 2.
+        self.i2cDevice_IC1_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC1 (Si5345A)")
+        self.i2cDevice_IC1_Si5345A.muxChannel = 2
+        self.i2cDevice_IC1_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
+        self.i2cDevice_IC1_Si5345A.debugLevel = self.debugLevel
+        # IC2 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 0.
+        self.i2cDevice_IC2_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC2 (Si5345A)")
+        self.i2cDevice_IC2_Si5345A.muxChannel = 0
+        self.i2cDevice_IC2_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC2_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC2_Si5345A.debugLevel = self.debugLevel
+        # IC3 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 0.
+        self.i2cDevice_IC3_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC3 (Si5345A)")
+        self.i2cDevice_IC3_Si5345A.muxChannel = 0
+        self.i2cDevice_IC3_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC3_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC3_Si5345A.debugLevel = self.debugLevel
+        # IC4 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 0.
+        self.i2cDevice_IC4_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC4 (Si5345A)")
+        self.i2cDevice_IC4_Si5345A.muxChannel = 0
+        self.i2cDevice_IC4_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC4_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC4_Si5345A.debugLevel = self.debugLevel
+        # IC5 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 0.
+        self.i2cDevice_IC5_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC5 (Si5345A)")
+        self.i2cDevice_IC5_Si5345A.muxChannel = 0
+        self.i2cDevice_IC5_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC5_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC5_Si5345A.debugLevel = self.debugLevel
+        # IC6 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 1.
+        self.i2cDevice_IC6_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC6 (Si5345A)")
+        self.i2cDevice_IC6_Si5345A.muxChannel = 1
+        self.i2cDevice_IC6_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC6_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC6_Si5345A.debugLevel = self.debugLevel
+        # IC7 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 1.
+        self.i2cDevice_IC7_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC7 (Si5345A)")
+        self.i2cDevice_IC7_Si5345A.muxChannel = 1
+        self.i2cDevice_IC7_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC7_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC7_Si5345A.debugLevel = self.debugLevel
+        # IC8 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 1.
+        self.i2cDevice_IC8_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC8 (Si5345A)")
+        self.i2cDevice_IC8_Si5345A.muxChannel = 1
+        self.i2cDevice_IC8_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC8_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC8_Si5345A.debugLevel = self.debugLevel
+        # IC9 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 1.
+        self.i2cDevice_IC9_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC9 (Si5345A)")
+        self.i2cDevice_IC9_Si5345A.muxChannel = 1
+        self.i2cDevice_IC9_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC9_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC9_Si5345A.debugLevel = self.debugLevel
+        # IC10 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 2.
+        self.i2cDevice_IC10_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC10 (Si5345A)")
+        self.i2cDevice_IC10_Si5345A.muxChannel = 2
+        self.i2cDevice_IC10_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC10_0x69_100IN1_NA_NA_200_NA_NA_NA_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC10_Si5345A.debugLevel = self.debugLevel
+        # IC12 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 2.
+        self.i2cDevice_IC12_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC12 (Si5345A)")
+        self.i2cDevice_IC12_Si5345A.muxChannel = 2
+        self.i2cDevice_IC12_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC12_0x6A_100IN2_10_400_NA_FB-Registers.txt")
+        self.i2cDevice_IC12_Si5345A.debugLevel = self.debugLevel
+
+
 
 
 
     # Reset all I2C busses.
     def i2c_reset(self):
-        for i in range(0, self.i2cBusNum):
-            if i in self.i2cBusActive:
-                self.mcuI2C[i].ms_reset_bus()
+        if i in self.i2cBusActive:
+            self.mcuI2C[i].ms_reset_bus()
 
 
 
     # Detect devices on all I2C busses.
     def i2c_detect_devices(self):
         print("Devices found on I2C busses:")
-        for i in range(0, self.i2cBusNum):
-            if i in self.i2cBusActive:
-                print("Bus {0:d}: ".format(i), end='')
-                ret, devAdr = self.mcuI2C[i].ms_detect_devices()
-                for adr in devAdr:
-                    print(" 0x{0:02x}".format(adr), end='')
-                print()
+        if i in self.i2cBusActive:
+            print("Bus {0:d}: ".format(i), end='')
+            ret, devAdr = self.mcuI2C[i].ms_detect_devices()
+            for adr in devAdr:
+                print(" 0x{0:02x}".format(adr), end='')
+            print()
 
 
 
@@ -565,3 +627,70 @@ class MdtTp_CM:
         print(self.prefixStatus + "{0:18s}: {1:5.2f} V, {2:5.2f} A".format("5.0V",              P5V_MISC_Voltage,   P5V_MISC_Current    ))
         print(self.prefixStatus + "{0:18s}: {1:5.1f} W".format("Total power",  miscPower))
 
+
+
+    # ===============================================================
+    # Silicon labs clock ICs.
+    # ===============================================================
+
+    # Program a single Silicon Labs clock IC from a register map file.
+    def clk_prog_device_file(self, i2cDevice):
+        i2cDevice.debugLevel = self.debugLevel
+        muxChannel = i2cDevice.muxChannel
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Setting I2C mux for clock chips {0:s} to channel {1:d}.".format(self.i2cDevice_IC36_PCA9545APW.deviceName, muxChannel))
+        self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        regMapFile = i2cDevice.regMapFile
+        print("Initialitzing {0:s} on I2C port {1:d} with register map file `{2:s}'.".\
+            format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, regMapFile))
+        i2cDevice.debugLevel = self.debugLevel
+        i2cDevice.config_file(regMapFile)
+
+
+
+    # Program a single Silicon Labs clock IC from a register map file by its name.
+    def clk_prog_device_by_name(self, clkDevName, regMapFile):
+        clkDeviceList = [self.i2cDevice_IC1_Si5345A,
+                         self.i2cDevice_IC2_Si5345A,
+                         self.i2cDevice_IC3_Si5345A,
+                         self.i2cDevice_IC4_Si5345A,
+                         self.i2cDevice_IC5_Si5345A,
+                         self.i2cDevice_IC6_Si5345A,
+                         self.i2cDevice_IC7_Si5345A,
+                         self.i2cDevice_IC8_Si5345A,
+                         self.i2cDevice_IC9_Si5345A,
+                         self.i2cDevice_IC10_Si5345A,
+                         self.i2cDevice_IC12_Si5345A]
+        clkDevice = None
+        for dev in clkDeviceList:
+            if clkDevName.lower() == dev.deviceName.split(' ')[0].lower():
+                clkDevice = dev
+                clkDevice.regMapFile = regMapFile
+        if not clkDevice:
+            print(self.prefixError + "Clock device '{0:s}' not valid!".format(clkDevName))
+            print(self.prefixError + "Valid clock devices: ", end='')
+            for dev in clkDeviceList:
+                print(dev.deviceName.split(' ')[0] + " ", end='')
+            print()
+            return -1
+        self.clk_prog_device_file(clkDevice)
+        return 0
+
+
+
+    # Program all clock devices.
+    def clk_prog_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Initialitzing all clock chips.")
+        self.clk_prog_device_file(self.i2cDevice_IC1_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC2_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC3_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC4_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC5_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC6_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC7_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC8_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC9_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
+        self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
