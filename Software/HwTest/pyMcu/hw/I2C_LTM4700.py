@@ -284,7 +284,7 @@ class I2C_LTM4700:
     # Disable all writes except to the WRITE_PROTECT, OPERATION, MFR_EE_UNLOCK,
     # MFR_CLEAR_PEAKS, CLEAR_FAULTS, PAGE, ON_OFF_CONFIG, VOUT_COMMAND and
     # STORE_USER_ALL.
-    def wp_level_2(self):
+    def wp_level_3(self):
         return self.write(self.hwCmdCodeWriteProtect, [0x20])
 
 
