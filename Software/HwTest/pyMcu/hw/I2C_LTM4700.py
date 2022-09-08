@@ -213,10 +213,10 @@ class I2C_LTM4700:
             self.errorCount += 1
             print(self.prefixErrorDevice + "Error reading the page number. Error code: 0x{0:02x}: ".format(ret))
             return -1, 0xff
+        page = data[0]
         if self.check_page_number(page):
             self.errorCount += 1
             return -1, 0xff
-        page = data[0]
         self.hwPage = page
         return 0, page
 
