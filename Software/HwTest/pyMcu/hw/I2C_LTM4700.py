@@ -358,7 +358,7 @@ class I2C_LTM4700:
         ret, data = self.read(self.hwCmdCodeReadVout, 2)
         if ret:
             self.errorCount += 1
-            print(self.prefixErrorDevice + "Error reading the output voltage of channel {0:d}. Error code: 0x{0:02x}: ".format(channel, ret))
+            print(self.prefixErrorDevice + "Error reading the output voltage of channel {0:d}. Error code: 0x{1:02x}: ".format(channel, ret))
             return -1, float(-1)
         voutRaw = (data[1] << 8) + data[0]
         return 0, self.l16_to_float(voutRaw)
@@ -374,7 +374,7 @@ class I2C_LTM4700:
         ret, data = self.read(self.hwCmdCodeReadIout, 2)
         if ret:
             self.errorCount += 1
-            print(self.prefixErrorDevice + "Error reading the output current of channel {0:d}. Error code: 0x{0:02x}: ".format(channel, ret))
+            print(self.prefixErrorDevice + "Error reading the output current of channel {0:d}. Error code: 0x{1:02x}: ".format(channel, ret))
             return -1, float(-1)
         ioutRaw = (data[1] << 8) + data[0]
         return 0, self.l11_to_float(ioutRaw)
