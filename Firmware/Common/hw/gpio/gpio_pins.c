@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 07 Jun 2022
+// Rev.: 08 Sep 2022
 //
 // GPIO pin definitions and functions for the TI Tiva TM4C1290 MCU on the ATLAS
 // MDT Trigger Processor (TP) Command Module (CM) prototype.
@@ -983,20 +983,20 @@ void GpioInit_I2CReset(void)
 
 void GpioSet_I2CReset(uint32_t ui32Val)
 {
-    GpioOutputSetBool(&g_sGpio_I2CReset0, (bool) (ui32Val & 0x01));
-    GpioOutputSetBool(&g_sGpio_I2CReset1, (bool) (ui32Val & 0x02));
-    GpioOutputSetBool(&g_sGpio_I2CReset2, (bool) (ui32Val & 0x04));
-    GpioOutputSetBool(&g_sGpio_I2CReset3, (bool) (ui32Val & 0x08));
+    GpioOutputSetBool(&g_sGpio_I2CReset0, ! (bool) (ui32Val & 0x01));
+    GpioOutputSetBool(&g_sGpio_I2CReset1, ! (bool) (ui32Val & 0x02));
+    GpioOutputSetBool(&g_sGpio_I2CReset2, ! (bool) (ui32Val & 0x04));
+    GpioOutputSetBool(&g_sGpio_I2CReset3, ! (bool) (ui32Val & 0x08));
 }
 
 uint32_t GpioGet_I2CReset(void)
 {
     uint32_t ui32Val = 0;
 
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_PowerReservedCtrl0) & 0x1) << 0;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_PowerReservedCtrl1) & 0x1) << 1;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_PowerReservedCtrl2) & 0x1) << 2;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_PowerReservedCtrl3) & 0x1) << 3;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_PowerReservedCtrl0) & 0x1)) << 0;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_PowerReservedCtrl1) & 0x1)) << 1;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_PowerReservedCtrl2) & 0x1)) << 2;
+    ui32Val |= (!(GpioOutputGetBool(&g_sGpio_PowerReservedCtrl3) & 0x1)) << 3;
 
     return ui32Val;
 }
