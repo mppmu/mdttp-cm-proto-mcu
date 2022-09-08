@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 28 Apr 2021
-# Rev.: 28 Apr 2021
+# Rev.: 08 Sep 2022
 #
 # Python class for communicating with the LTM4700 dual 50A or single 100A
 # uModule regulator with digital power system management IC.
