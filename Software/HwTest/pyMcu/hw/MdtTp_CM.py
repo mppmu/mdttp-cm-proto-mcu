@@ -13,6 +13,7 @@
 
 
 import os
+import time
 import McuGpio
 import McuI2C
 import McuSerial
@@ -237,7 +238,7 @@ class MdtTp_CM:
     # I2C bus.
     # ===============================================================
 
-    # Initialize the I2C busses and devices.
+    # Initialize the I2C buses and devices.
     def init_hw_i2c(self):
         # Defile all I2C buses.
         self.mcuI2C = []
@@ -344,22 +345,47 @@ class MdtTp_CM:
 
 
 
-    # Reset all I2C busses.
+    # Reset all I2C buses.
     def i2c_reset(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Resetting all I2C buses.")
         for i in self.i2cBusActive:
             self.mcuI2C[i].ms_reset_bus()
 
 
 
-    # Detect devices on all I2C busses.
+    # Detect devices on all I2C buses.
     def i2c_detect_devices(self):
-        print("Devices found on I2C busses:")
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Detecting devices on all I2C buses.")
+        print("Devices found on I2C buses:")
         for i in self.i2cBusActive:
             print("Bus {0:d}: ".format(i), end='')
             ret, devAdr = self.mcuI2C[i].ms_detect_devices()
+            if ret:
+                print(self.prefixError + "Error detecting devices on I2C bus {0:d}!".format(i))
             for adr in devAdr:
                 print(" 0x{0:02x}".format(adr), end='')
             print()
+
+
+
+    # Reset I2C multiplexers.
+    def i2c_mux_reset(self, resetMask):
+        resetMask &= 0x0f   # Only 4 reset signals are available.
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Resetting the I2C bus multiplexers with reset bit mask 0x{0:x}.".format(resetMask))
+        # Assert reset.
+        cmd = "gpio i2c-reset 0x{0:x}".format(resetMask)
+        ret = self.mcu_cmd_raw(cmd)[0]
+        # Wait some time.
+        time.sleep(0.1)
+        # De-assert reset.
+        cmd = "gpio i2c-reset 0x0"
+        ret |= self.mcu_cmd_raw(cmd)[0]
+        if ret:
+            print(self.prefixError + "Error resetting the I2C bus multiplexers with reset bit mask 0x{0:x}!".format(resetMask))
+        return ret
 
 
 

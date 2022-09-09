@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 05 Sep 2022
+# Rev.: 09 Sep 2022
 #
 # Python script to access the ATLAS MDT Trigger Processor (TP) Command Module
 # (CM) Prototype via the TI Tiva TM4C1290 MCU.
@@ -47,7 +47,7 @@ if __name__ == "__main__":
                         choices=['power_up', 'power_down', 'power_detail',
                                  'sn', 'status', 'mon_temp',
                                  'mcu_cmd_raw', 'mcu_led_user',
-                                 'i2c_reset', 'i2c_detect',
+                                 'i2c_reset', 'i2c_detect', "i2c_mux_reset",
                                  'pm_status', 'pm_status_raw',
                                  'clk_setup'],
                         dest='command', default='status',
@@ -118,6 +118,12 @@ if __name__ == "__main__":
         mdtTp_CM.i2c_reset()
     elif command == "i2c_detect":
         mdtTp_CM.i2c_detect_devices()
+    elif command == "i2c_mux_reset":
+        if commandParameters:
+            I2CMuxResetMask = int(commandParameters[0], 0)
+        else:
+            I2CMuxResetMask = 0x0f
+        mdtTp_CM.i2c_mux_reset(I2CMuxResetMask)
     elif command == "pm_status":
         mdtTp_CM.power_module_status()
     elif command == "pm_status_raw":
