@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 05 Sep 2022
+# Rev.: 09 Sep 2022
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -69,7 +69,8 @@ class MdtTp_CM:
     # ===============================================================
 
     # Extract the integer value from an MCU answer string.
-    def mcu_str2int(self, mcuStr):
+    @classmethod
+    def mcu_str2int(cls, mcuStr):
         data = mcuStr.split(' ')
         if not data:
             return -1, 0x0
@@ -145,14 +146,19 @@ class MdtTp_CM:
     # Read the serial number of the board
     def serial_number(self):
         if self.debugLevel >= 1:
-            print(self.prefixDebug + "Reading the serial number from the DS28CM00 device.")
+            print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_IC22_DS28CM00.deviceName)
         ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_IC22_DS28CM00.read_all()
+        if ret:
+            print(self.prefixError + "Error reading the serial number from {0:s}.", self.i2cDevice_IC22_DS28CM00.deviceName)
+            return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
         print("CRC: 0x{0:02x}".format(crc))
         if crcError:
             self.errorCount += 1
             print(self.prefixError + "CRC error detected!")
+            return 1
+        return 0
 
 
 
@@ -338,11 +344,9 @@ class MdtTp_CM:
 
 
 
-
-
     # Reset all I2C busses.
     def i2c_reset(self):
-        if i in self.i2cBusActive:
+        for i in self.i2cBusActive:
             self.mcuI2C[i].ms_reset_bus()
 
 
@@ -350,7 +354,7 @@ class MdtTp_CM:
     # Detect devices on all I2C busses.
     def i2c_detect_devices(self):
         print("Devices found on I2C busses:")
-        if i in self.i2cBusActive:
+        for i in self.i2cBusActive:
             print("Bus {0:d}: ".format(i), end='')
             ret, devAdr = self.mcuI2C[i].ms_detect_devices()
             for adr in devAdr:

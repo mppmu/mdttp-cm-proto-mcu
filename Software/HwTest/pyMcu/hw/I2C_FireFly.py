@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 10 Nov 2020
-# Rev.: 10 Nov 2020
+# Rev.: 09 Sep 2022
 #
 # Python class for communicating with a Samtec FireFly optical assembly.
 #
@@ -67,47 +67,47 @@ class I2C_FireFly:
                 regName = "Status"
             elif regAdr == 6:
                 regName = "Status Summaries"
-            elif regAdr >= 7 and regAdr <= 8:
+            elif 7 <= regAdr <= 8:
                 regName = "Latched LOS Alarms"
-            elif regAdr >= 14 and regAdr <= 16:
+            elif 14 <= regAdr <= 16:
                 regName = "Latched RX Power Alarms"
             elif regAdr == 17:
                 regName = "Latched Alarms- Temperature"
             elif regAdr == 18:
                 regName = "Latched Alarms- Vcc3.3"
-            elif regAdr >= 20 and regAdr <= 21:
+            elif 20 <= regAdr <= 21:
                 regName = "Latched CDR LOL Alarms"
             elif regAdr == 22:
                 regName = "Internal Temperature Monitor"
-            elif regAdr >= 26 and regAdr <= 27:
+            elif 26 <= regAdr <= 27:
                 regName = "Vcc Monitor"
-            elif regAdr >= 38 and regAdr <= 39:
+            elif 38 <= regAdr <= 39:
                 regName = "Elapsed Operating Time"
             elif regAdr == 51:
                 regName = "Reset"
-            elif regAdr >= 52 and regAdr <= 53:
+            elif 52 <= regAdr <= 53:
                 regName = "Channel Disable"
-            elif regAdr >= 54 and regAdr <= 55:
+            elif 54 <= regAdr <= 55:
                 regName = "Output Disable"
-            elif regAdr >= 58 and regAdr <= 59:
+            elif 58 <= regAdr <= 59:
                 regName = "Rx Polarity Invert"
-            elif regAdr >= 62 and regAdr <= 67:
+            elif 62 <= regAdr <= 67:
                 regName = "Output Amplitude"
-            elif regAdr >= 68 and regAdr <= 73:
+            elif 68 <= regAdr <= 73:
                 regName = "De-emphasis"
-            elif regAdr >= 74 and regAdr <= 75:
+            elif 74 <= regAdr <= 75:
                 regName = "CDR Enable"
-            elif regAdr >= 95 and regAdr <= 96:
+            elif 95 <= regAdr <= 96:
                 regName = "Mask LOS Flags"
-            elif regAdr >= 102 and regAdr <= 104:
+            elif 102 <= regAdr <= 104:
                 regName = "Mask RX Power Alarms"
             elif regAdr ==  105:
                 regName = "Mask Temperature Alarms"
             elif regAdr ==  106:
                 regName = "Mask Vcc3.3 Alarms"
-            elif regAdr >= 108 and regAdr <= 109:
+            elif 108 <= regAdr <= 109:
                 regName = "Mask CDR LOL Alarms"
-            elif regAdr >= 111 and regAdr <= 114:
+            elif 111 <= regAdr <= 114:
                 regName = "Firmware Version"
             elif regAdr ==  127:
                 regName = "Page Select Byte"
@@ -116,47 +116,47 @@ class I2C_FireFly:
                 regName = "Status"
             elif regAdr == 6:
                 regName = "Status Summaries"
-            elif regAdr >= 7 and regAdr <= 8:
+            elif 7 <= regAdr <= 8:
                 regName = "Latched TX LOS Alarms"
-            elif regAdr >= 9 and regAdr <= 10:
+            elif 9 <= regAdr <= 10:
                 regName = "Latched Alarm – Laser Fault"
             elif regAdr == 17:
                 regName = "Latched Alarms- Temperature"
             elif regAdr == 18:
                 regName = "Latched Alarms- Vcc3.3"
-            elif regAdr >= 20 and regAdr <= 21:
+            elif 20 <= regAdr <= 21:
                 regName = "Latched CDR LOL Alarms"
             elif regAdr == 22:
                 regName = "Internal Temperature Monitor"
-            elif regAdr >= 26 and regAdr <= 27:
+            elif 26 <= regAdr <= 27:
                 regName = "Vcc Monitor"
-            elif regAdr >= 38 and regAdr <= 39:
+            elif 38 <= regAdr <= 39:
                 regName = "Elapsed Operating Time"
             elif regAdr == 51:
                 regName = "Reset"
-            elif regAdr >= 52 and regAdr <= 53:
+            elif 52 <= regAdr <= 53:
                 regName = "Transmit Channel Disable"
-            elif regAdr >= 54 and regAdr <= 55:
+            elif 54 <= regAdr <= 55:
                 regName = "Transmit Output Disable"
-            elif regAdr >= 56 and regAdr <= 57:
+            elif 56 <= regAdr <= 57:
                 regName = "Transmit Squelch Disable"
-            elif regAdr >= 58 and regAdr <= 59:
+            elif 58 <= regAdr <= 59:
                 regName = "Transmit Polarity Invert"
-            elif regAdr >= 62 and regAdr <= 67:
+            elif 62 <= regAdr <= 67:
                 regName = "Transmit Input Equalization"
-            elif regAdr >= 74 and regAdr <= 75:
+            elif 74 <= regAdr <= 75:
                 regName = "CDR Enable"
-            elif regAdr >= 95 and regAdr <= 96:
+            elif 95 <= regAdr <= 96:
                 regName = "Mask TX LOS Alarms"
-            elif regAdr >= 97 and regAdr <= 98:
+            elif 97 <= regAdr <= 98:
                 regName = "Mask Fault Flags"
             elif regAdr ==  105:
                 regName = "Mask Temperature Alarms"
             elif regAdr ==  106:
                 regName = "Mask Vcc3.3 Alarms"
-            elif regAdr >= 108 and regAdr <= 109:
+            elif 108 <= regAdr <= 109:
                 regName = "Mask CDR LOL Alarms"
-            elif regAdr >= 111 and regAdr <= 114:
+            elif 111 <= regAdr <= 114:
                 regName = "Firmware Version"
             elif regAdr ==  127:
                 regName = "Page Select Byte"
@@ -282,7 +282,7 @@ class I2C_FireFly:
     def read_operating_time(self):
         ret, operatingTime = self.read_reg_range_int(38, 39)
         # Calculate value in hours.
-        operatingTime = deviceOperatingTime * 2
+        operatingTime *= 2      # LSB = 2 hours according to datasheet.
         return ret, operatingTime
 
 
@@ -340,6 +340,6 @@ class I2C_FireFly:
     # Read device information.
     def read_device_info(self):
         # Temperature.
-        ret, deviceTemperature = relf.read_temperature()
+        ret, deviceTemperature = self.read_temperature()
         return ret, deviceTemperature
 

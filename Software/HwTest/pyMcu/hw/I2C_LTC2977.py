@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 15 Jun 2020
-# Rev.: 28 Apr 2021
+# Rev.: 09 Sep 2022
 #
 # Python class for communicating with the LTC2977 8-channel PMBus power system
 # manager IC.
@@ -83,7 +83,7 @@ class I2C_LTC2977:
             cmdName = "READ_TEMPERATURE_1"
         elif cmdCode == cls.hwCmdCodeMfrConfigChan:
             cmdName = "MFR_CONFIG_LTC2977"
-        elif cmdCode == hwCmdCodeMfrPageFfMask:
+        elif cmdCode == cls.hwCmdCodeMfrPageFfMask:
             cmdName = "MFR_PAGE_FF_MASK"
         elif cmdCode <= 0xfd:
             cmdName = "unknown"
@@ -207,17 +207,18 @@ class I2C_LTC2977:
             self.errorCount += 1
             print(self.prefixErrorDevice + "Error reading the page number. Error code: 0x{0:02x}: ".format(ret))
             return -1, 0xff
+        page = data[0]
         if self.check_page_number(page):
             self.errorCount += 1
             return -1, 0xff
-        page = data[0]
         self.hwPage = page
         return 0, page
 
 
 
     # Calculate a float value from an L11 (Linear_5s_11s) value.
-    def l11_to_float(self, b):
+    @classmethod
+    def l11_to_float(cls, b):
         # PMBus data field b[15:0]
         # Value = Y * 2**N
         # where N = b[15:11] is a 5-bit two’s complement integer
@@ -233,7 +234,8 @@ class I2C_LTC2977:
 
 
     # Calculate a float value from an L16 (Linear_16u) value.
-    def l16_to_float(self, b):
+    @classmethod
+    def l16_to_float(cls, b):
         # PMBus data field b[15:0]
         # Value = Y * 2**N
         # where Y = b[15:0] is an unsigned integer
@@ -329,7 +331,7 @@ class I2C_LTC2977:
 
 
 
-    # Read the most recent ADC measured value of the channel's output voltage. 
+    # Read the most recent ADC measured value of the channel's output voltage.
     def read_vout(self, channel):
         if self.set_page(channel):
             self.errorCount += 1
@@ -340,10 +342,10 @@ class I2C_LTC2977:
         ret, data = self.read(self.hwCmdCodeReadVout, 2)
         if ret:
             self.errorCount += 1
-            print(self.prefixErrorDevice + "Error reading the output voltage of channel {0:d}. Error code: 0x{0:02x}: ".format(channel, ret))
+            print(self.prefixErrorDevice + "Error reading the output voltage of channel {0:d}. Error code: 0x{1:02x}: ".format(channel, ret))
             return -1, float(-1)
         voutRaw = (data[1] << 8) + data[0]
-        # High resoltuion only for odd channels and only if bit 9 of the configuration register of the channel is set.
+        # High resolution only for odd channels and only if bit 9 of the configuration register of the channel is set.
         if channel & 0x1 == 0x1 and mfrConfig & (0x1 << 9):
             return 0, self.l11_to_float(voutRaw) / 1000     # This value is in mV!
         else:

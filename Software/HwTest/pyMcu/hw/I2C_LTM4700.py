@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 28 Apr 2021
-# Rev.: 08 Sep 2022
+# Rev.: 09 Sep 2022
 #
 # Python class for communicating with the LTM4700 dual 50A or single 100A
 # uModule regulator with digital power system management IC.
@@ -223,7 +223,8 @@ class I2C_LTM4700:
 
 
     # Calculate a float value from an L11 (Linear_5s_11s) value.
-    def l11_to_float(self, b):
+    @classmethod
+    def l11_to_float(cls, b):
         # PMBus data field b[15:0]
         # Value = Y * 2**N
         # where N = b[15:11] is a 5-bit two’s complement integer
@@ -239,7 +240,8 @@ class I2C_LTM4700:
 
 
     # Calculate a float value from an L16 (Linear_16u) value.
-    def l16_to_float(self, b):
+    @classmethod
+    def l16_to_float(cls, b):
         # PMBus data field b[15:0]
         # Value = Y * 2**N
         # where Y = b[15:0] is an unsigned integer

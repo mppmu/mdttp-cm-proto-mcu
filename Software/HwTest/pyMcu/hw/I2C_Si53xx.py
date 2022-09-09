@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 29 Apr 2020
-# Rev.: 20 Apr 2021
+# Rev.: 09 Sep 2022
 #
 # Python class for communicating with Silicon Labs Si5341/40 and Si5345/44/42
 # devices.
@@ -61,7 +61,7 @@ class I2C_Si53xx:
 
         fileRegMapLineCount = 0
         # Read and process the register map file.
-        with open(fileRegMapName) as fileRegMap:
+        with open(fileRegMapName, encoding='UTF-8') as fileRegMap:
             for fileRegMapLine in fileRegMap:
                 fileRegMapLineCount += 1
                 if self.debugLevel >= 3:
