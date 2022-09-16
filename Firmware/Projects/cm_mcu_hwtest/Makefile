@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 03 Jun 2022
-# Rev.: 03 Jun 2022
+# Rev.: 16 Sep 2022
 #
 # Makefile for the firmware running on the ATLAS MDT Trigger Processor (TP)
 # Command Module (CM) prototype MCU.
@@ -28,6 +28,7 @@ SOURCE_FILES  = cm_mcu_hwtest.c                     \
                 cm_mcu_hwtest_gpio.c                \
                 cm_mcu_hwtest_i2c.c                 \
                 cm_mcu_hwtest_io.c                  \
+                cm_mcu_hwtest_qssi.c                \
                 cm_mcu_hwtest_uart.c                \
                 power_control.c                     \
                 sm_cm.c                             \
@@ -36,6 +37,7 @@ SOURCE_FILES  = cm_mcu_hwtest.c                     \
                 $(COMMON_LINK)/hw/gpio/gpio.c       \
                 $(COMMON_LINK)/hw/gpio/gpio_pins.c  \
                 $(COMMON_LINK)/hw/i2c/i2c.c         \
+                $(COMMON_LINK)/hw/qssi/qssi.c       \
                 $(COMMON_LINK)/hw/uart/uart.c       \
 
 HEADER_FILES  = cm_mcu_hwtest.h                     \
@@ -43,6 +45,7 @@ HEADER_FILES  = cm_mcu_hwtest.h                     \
                 cm_mcu_hwtest_gpio.h                \
                 cm_mcu_hwtest_i2c.h                 \
                 cm_mcu_hwtest_io.h                  \
+                cm_mcu_hwtest_qssi.h                \
                 cm_mcu_hwtest_uart.h                \
                 power_control.h                     \
                 sm_cm.h                             \
@@ -50,6 +53,7 @@ HEADER_FILES  = cm_mcu_hwtest.h                     \
                 $(COMMON_LINK)/hw/gpio/gpio.h       \
                 $(COMMON_LINK)/hw/gpio/gpio_pins.h  \
                 $(COMMON_LINK)/hw/i2c/i2c.h         \
+                $(COMMON_LINK)/hw/qssi/qssi.h       \
                 $(COMMON_LINK)/hw/uart/uart.h       \
 
 LINKER_FILE   = cm_mcu_hwtest.ld
@@ -91,6 +95,7 @@ IPATH += $(COMMON_LINK)
 IPATH += $(COMMON_LINK)/hw
 IPATH += $(COMMON_LINK)/hw/gpio
 IPATH += $(COMMON_LINK)/hw/i2c
+IPATH += $(COMMON_LINK)/hw/qssi
 IPATH += $(COMMON_LINK)/hw/uart
 
 # Rules for building the project.

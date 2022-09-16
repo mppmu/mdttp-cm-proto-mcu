@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 05 Sep 2022
+// Rev.: 16 Sep 2022
 //
 // IO peripheral definitions of the firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -16,6 +16,7 @@
 #include "driverlib/gpio.h"
 #include "driverlib/i2c.h"
 #include "driverlib/pin_map.h"
+#include "driverlib/ssi.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
 #include "cm_mcu_hwtest_io.h"
@@ -244,6 +245,49 @@ tI2C g_psI2C[I2C_MASTER_NUM] = {
             I2C_MASTER_INT_NACK | I2C_MASTER_INT_TIMEOUT | I2C_MASTER_INT_DATA,
         100                     // ui32Timeout
     }
+};
+
+
+
+// ******************************************************************
+// Synchronous Serial Interface (SSI). This can also be configured to use the
+// Motorola SPI frame format.
+// ******************************************************************
+
+// QSSI for the IS25LP064A-JBLA3 external 64 Mb boot flash.
+tQSSI g_sQssi1 = {
+    SYSCTL_PERIPH_SSI1,     // ui32Peripheral
+    SYSCTL_PERIPH_GPIOB,    // CLK
+    SYSCTL_PERIPH_GPIOB,    // FSS
+    SYSCTL_PERIPH_GPIOE,    // XDAT0
+    SYSCTL_PERIPH_GPIOE,    // XDAT1
+    SYSCTL_PERIPH_GPIOD,    // XDAT2
+    SYSCTL_PERIPH_GPIOD,    // XDAT3
+    GPIO_PORTB_BASE,        // CLK
+    GPIO_PORTB_BASE,        // FSS
+    GPIO_PORTE_BASE,        // XDAT0
+    GPIO_PORTE_BASE,        // XDAT1
+    GPIO_PORTD_BASE,        // XDAT2
+    GPIO_PORTD_BASE,        // XDAT3
+    GPIO_PIN_5|GPIO_PIN_4,  // CLK, FSS
+    GPIO_PIN_5|GPIO_PIN_4,  // CLK, FSS
+    GPIO_PIN_4|GPIO_PIN_5,  // XDAT0, XDAT1
+    GPIO_PIN_4|GPIO_PIN_5,  // XDAT0, XDAT1
+    GPIO_PIN_4|GPIO_PIN_5,  // XDAT2, XDAT3
+    GPIO_PIN_4|GPIO_PIN_5,  // XDAT2, XDAT3
+    GPIO_PB5_SSI1CLK,       // CLK
+    GPIO_PB4_SSI1FSS,       // FSS
+    GPIO_PE4_SSI1XDAT0,     // XDAT0
+    GPIO_PE5_SSI1XDAT1,     // XDAT1
+    GPIO_PD4_SSI1XDAT2,     // XDAT2
+    GPIO_PD5_SSI1XDAT3,     // XDAT3
+    SSI1_BASE,              // ui32Base
+    0,                      // ui32SsiClk
+    SSI_FRF_MOTO_MODE_0,    // ui32Protocol
+    SSI_MODE_MASTER,        // ui32Mode
+    15000000,               // ui32BitRate
+    8,                      // ui32DataWidth
+    500                     // ui32Timeout
 };
 
 

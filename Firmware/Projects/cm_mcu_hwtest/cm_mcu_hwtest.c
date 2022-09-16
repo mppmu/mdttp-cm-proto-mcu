@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 03 Jun 2022
+// Rev.: 16 Sep 2022
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -17,6 +17,7 @@
 #include <strings.h>
 #include "driverlib/i2c.h"
 #include "driverlib/rom_map.h"
+#include "driverlib/ssi.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
 #include "utils/uartstdio.h"
@@ -33,6 +34,7 @@
 #include "cm_mcu_hwtest_gpio.h"
 #include "cm_mcu_hwtest_i2c.h"
 #include "cm_mcu_hwtest_io.h"
+#include "cm_mcu_hwtest_qssi.h"
 #include "cm_mcu_hwtest_uart.h"
 
 
@@ -79,6 +81,10 @@ int main(void)
         g_psI2C[i].ui32I2CClk = g_ui32SysClock;
         I2CMasterInit(&g_psI2C[i]);
     }
+
+    // Initialize the QSSI master.
+    g_sQssi1.ui32SsiClk = g_ui32SysClock;
+    QssiMasterInit(&g_sQssi1);
 
     // Initialize power up/down handshaking between the Service Module and the
     // Command Module.
@@ -179,6 +185,11 @@ int main(void)
             I2CAccess(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "i2c-det")) {
             I2CDetect(pcUartCmd, pcUartParam);
+        // QSSI based functions.
+        } else if (!strcasecmp(pcUartCmd, "qssi")) {
+            QssiAccess(pcUartCmd, pcUartParam);
+        } else if (!strcasecmp(pcUartCmd, "qssi-s")) {
+            QssiSetup(pcUartCmd, pcUartParam);
         // UART based functions.
         } else if (!strcasecmp(pcUartCmd, "uart")) {
             UartAccess(pcUartCmd, pcUartParam);
@@ -213,6 +224,8 @@ void Help(void)
     UARTprintf("  i2c-det PORT [MODE]                 I2C detect devices (MODE: 0 = auto,\n");
     UARTprintf("                                          1 = quick command, 2 = read).\n");
     UARTprintf("  info                                Show information about this firmware.\n");
+    UARTprintf("  qssi    PORT R/W NUM|DATA           QSSI/QSPI access (R/W: 0 = write, 1 = read).\n");
+    UARTprintf("  qssi-s  PORT FREQ                   Set up the QSSI port.\n");
     UARTprintf("  reset                               Reset the MCU.\n");
     UARTprintf("  uart    PORT R/W NUM|DATA           UART access (R/W: 0 = write, 1 = read).\n");
     UARTprintf("  uart-s  PORT BAUD [PARITY] [LOOP]   Set up the UART port.\n");
