@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 09 Sep 2022
+# Rev.: 16 Sep 2022
 #
 # Python script to access the ATLAS MDT Trigger Processor (TP) Command Module
 # (CM) Prototype via the TI Tiva TM4C1290 MCU.
@@ -48,8 +48,9 @@ if __name__ == "__main__":
                                  'sn', 'status', 'mon_temp',
                                  'mcu_cmd_raw', 'mcu_led_user',
                                  'i2c_reset', 'i2c_detect', "i2c_mux_reset",
+                                 'i2c_io_exp_init', 'i2c_io_exp_status', 'i2c_io_exp_get_input', 'i2c_io_exp_get_output', 'i2c_io_exp_set_output',
                                  'pm_status', 'pm_status_raw',
-                                 'clk_setup'],
+                                 'clk_setup', 'clk_reset'],
                         dest='command', default='status',
                         help='Command to execute on the CM.')
     parser.add_argument('-d', '--device', action='store', type=str,
@@ -124,6 +125,33 @@ if __name__ == "__main__":
         else:
             I2CMuxResetMask = 0x0f
         mdtTp_CM.i2c_mux_reset(I2CMuxResetMask)
+    elif command == "i2c_io_exp_init":
+        mdtTp_CM.i2c_io_exp_init()
+    elif command == "i2c_io_exp_status":
+        if commandParameters:
+            mdtTp_CM.i2c_io_exp_get_status(commandParameters[0])
+        else:
+            mdtTp_CM.i2c_io_exp_get_status_all()
+    elif command == "i2c_io_exp_get_input":
+        if commandParameters:
+            mdtTp_CM.i2c_io_exp_get_input(commandParameters[0])
+        else:
+            mdtTp_CM.i2c_io_exp_get_input_all()
+    elif command == "i2c_io_exp_get_output":
+        if commandParameters:
+            mdtTp_CM.i2c_io_exp_get_output(commandParameters[0])
+        else:
+            mdtTp_CM.i2c_io_exp_get_output_all()
+    elif command == "i2c_io_exp_set_output":
+        if not commandParameters:
+            print(prefixError, "Either the signal name and the value or the values for all I2C I/O expander outputs must be speficied with the `i2c_io_exp_set_output' command!")
+        else:
+            if len(commandParameters) == 2:
+                mdtTp_CM.i2c_io_exp_set_output(commandParameters[0], int(commandParameters[1], 0))
+            elif len(commandParameters) == 8:
+                mdtTp_CM.i2c_io_exp_set_output_all([int(p, 0) for p in commandParameters])
+            else:
+                print(prefixError, "Please specify either the signal name and the value or the values for all 8 I2C I/O expander outputs!")
     elif command == "pm_status":
         mdtTp_CM.power_module_status()
     elif command == "pm_status_raw":
@@ -137,6 +165,8 @@ if __name__ == "__main__":
                 mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
         else:
             mdtTp_CM.clk_prog_all()
+    elif command == "clk_reset":
+        mdtTp_CM.i2c_io_exp_reset_clk()
     else:
         print(prefixError + "Command `{0:s}' not supported!".format(command))
 

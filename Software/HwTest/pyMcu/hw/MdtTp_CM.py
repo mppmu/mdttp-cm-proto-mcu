@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 09 Sep 2022
+# Rev.: 16 Sep 2022
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -22,6 +22,7 @@ import I2C_DS28CM00
 import I2C_LTC2977
 import I2C_LTM4700
 import I2C_MCP9902
+import I2C_PCA9535
 import I2C_PCA9545
 import I2C_Si53xx
 import I2C_FireFly
@@ -54,13 +55,20 @@ class MdtTp_CM:
         self.debugLevel = debugLevel
         self.warningCount = 0
         self.errorCount = 0
-        self.init_hw()
+        self.define_hw()
+
+
+
+    # Define the hardware components.
+    def define_hw(self):
+        # Define the MCU I2C peripherals.
+        self.define_hw_i2c()
 
 
 
     # Initialize the hardware components.
     def init_hw(self):
-        # Define the MCU peripherals.
+        # Initialize the MCU I2C peripherals.
         self.init_hw_i2c()
 
 
@@ -144,13 +152,13 @@ class MdtTp_CM:
 
 
 
-    # Read the serial number of the board
+    # Read the serial number of the board.
     def serial_number(self):
         if self.debugLevel >= 1:
             print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_IC22_DS28CM00.deviceName)
         ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_IC22_DS28CM00.read_all()
         if ret:
-            print(self.prefixError + "Error reading the serial number from {0:s}.", self.i2cDevice_IC22_DS28CM00.deviceName)
+            print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_IC22_DS28CM00.deviceName)
             return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
@@ -238,16 +246,13 @@ class MdtTp_CM:
     # I2C bus.
     # ===============================================================
 
-    # Initialize the I2C buses and devices.
-    def init_hw_i2c(self):
-        # Defile all I2C buses.
+    # Define the I2C buses and devices.
+    def define_hw_i2c(self):
+        # Define all I2C buses.
         self.mcuI2C = []
         for i in range(0, self.i2cBusNum):
             self.mcuI2C.append(McuI2C.McuI2C(self.mcuSer, i))
             self.mcuI2C[i].debugLevel = self.debugLevel
-        # Reset all active I2C buses.
-        for i in self.i2cBusActive:
-            self.mcuI2C[i].ms_reset_bus()
 
         # IC22: DS28CM00 silicon serial number IC.
         # I2C port 4, slave address 0x50.
@@ -264,13 +269,6 @@ class MdtTp_CM:
         # IC62: I2C port 4, slave address 0x7c, clock generator ICs column 1.
         self.i2cDevice_IC62_MCP9902 = I2C_MCP9902.I2C_MCP9902(self.mcuI2C[4], 0x7c, "IC62 (MCP9902)")
         self.i2cDevice_IC62_MCP9902.debugLevel = self.debugLevel
-        # Set up the configuration registers.
-        self.i2cDevice_IC60_MCP9902.write_config_0(0x00)
-        self.i2cDevice_IC60_MCP9902.write_config_1(0x00)
-        self.i2cDevice_IC61_MCP9902.write_config_0(0x00)
-        self.i2cDevice_IC61_MCP9902.write_config_1(0x00)
-        self.i2cDevice_IC62_MCP9902.write_config_0(0x00)
-        self.i2cDevice_IC62_MCP9902.write_config_1(0x00)
 
         # Power modules.
         # IC26: LTM4700 regulator with digital power system management IC (VU13P core voltage).
@@ -282,66 +280,31 @@ class MdtTp_CM:
         # IC59: LTC2977 8-channel PMBus power system manager IC (1.8 V misc, 3.3 V misc, 5.0 V misc, 3.3. V FireFly).
         self.i2cDevice_IC59_LTC2977 = I2C_LTC2977.I2C_LTC2977(self.mcuI2C[1], 0x5d, "IC59 (LTC2977)")
 
-        # I2C mux for clock I2C bus:
-        # IC36 (PCA9545APW): I2C port 3, slave address 0x70.
-        self.i2cDevice_IC36_PCA9545APW = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[3], 0x70, "IC36 (PCA9545APW)")
-        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
-        # I2C clock devices.
-        # IC1 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 2.
-        self.i2cDevice_IC1_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC1 (Si5345A)")
-        self.i2cDevice_IC1_Si5345A.muxChannel = 2
-        self.i2cDevice_IC1_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
-        self.i2cDevice_IC1_Si5345A.debugLevel = self.debugLevel
-        # IC2 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 0.
-        self.i2cDevice_IC2_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC2 (Si5345A)")
-        self.i2cDevice_IC2_Si5345A.muxChannel = 0
-        self.i2cDevice_IC2_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC2_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
-        self.i2cDevice_IC2_Si5345A.debugLevel = self.debugLevel
-        # IC3 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 0.
-        self.i2cDevice_IC3_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC3 (Si5345A)")
-        self.i2cDevice_IC3_Si5345A.muxChannel = 0
-        self.i2cDevice_IC3_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC3_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
-        self.i2cDevice_IC3_Si5345A.debugLevel = self.debugLevel
-        # IC4 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 0.
-        self.i2cDevice_IC4_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC4 (Si5345A)")
-        self.i2cDevice_IC4_Si5345A.muxChannel = 0
-        self.i2cDevice_IC4_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC4_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
-        self.i2cDevice_IC4_Si5345A.debugLevel = self.debugLevel
-        # IC5 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 0.
-        self.i2cDevice_IC5_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC5 (Si5345A)")
-        self.i2cDevice_IC5_Si5345A.muxChannel = 0
-        self.i2cDevice_IC5_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC5_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
-        self.i2cDevice_IC5_Si5345A.debugLevel = self.debugLevel
-        # IC6 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 1.
-        self.i2cDevice_IC6_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC6 (Si5345A)")
-        self.i2cDevice_IC6_Si5345A.muxChannel = 1
-        self.i2cDevice_IC6_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC6_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
-        self.i2cDevice_IC6_Si5345A.debugLevel = self.debugLevel
-        # IC7 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 1.
-        self.i2cDevice_IC7_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC7 (Si5345A)")
-        self.i2cDevice_IC7_Si5345A.muxChannel = 1
-        self.i2cDevice_IC7_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC7_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
-        self.i2cDevice_IC7_Si5345A.debugLevel = self.debugLevel
-        # IC8 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 1.
-        self.i2cDevice_IC8_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC8 (Si5345A)")
-        self.i2cDevice_IC8_Si5345A.muxChannel = 1
-        self.i2cDevice_IC8_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC8_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
-        self.i2cDevice_IC8_Si5345A.debugLevel = self.debugLevel
-        # IC9 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 1.
-        self.i2cDevice_IC9_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC9 (Si5345A)")
-        self.i2cDevice_IC9_Si5345A.muxChannel = 1
-        self.i2cDevice_IC9_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC9_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
-        self.i2cDevice_IC9_Si5345A.debugLevel = self.debugLevel
-        # IC10 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 2.
-        self.i2cDevice_IC10_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC10 (Si5345A)")
-        self.i2cDevice_IC10_Si5345A.muxChannel = 2
-        self.i2cDevice_IC10_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC10_0x69_100IN1_NA_NA_200_NA_NA_NA_NA_NA_NA_FB-Registers.txt")
-        self.i2cDevice_IC10_Si5345A.debugLevel = self.debugLevel
-        # IC12 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 2.
-        self.i2cDevice_IC12_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC12 (Si5345A)")
-        self.i2cDevice_IC12_Si5345A.muxChannel = 2
-        self.i2cDevice_IC12_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC12_0x6A_100IN2_10_400_NA_FB-Registers.txt")
-        self.i2cDevice_IC12_Si5345A.debugLevel = self.debugLevel
+        # Define the I2C clock devices.
+        self.i2c_clk_define()
+
+        # Define the I2C I/O expander devices.
+        self.i2c_io_exp_define()
+
+
+
+    # Initialize the I2C buses and devices.
+    def init_hw_i2c(self):
+        # Reset all active I2C buses.
+        for i in self.i2cBusActive:
+            self.mcuI2C[i].ms_reset_bus()
+
+        # MCP9902 low-temperature remote diode sensor IC.
+        # Set up the configuration registers.
+        self.i2cDevice_IC60_MCP9902.write_config_0(0x00)
+        self.i2cDevice_IC60_MCP9902.write_config_1(0x00)
+        self.i2cDevice_IC61_MCP9902.write_config_0(0x00)
+        self.i2cDevice_IC61_MCP9902.write_config_1(0x00)
+        self.i2cDevice_IC62_MCP9902.write_config_0(0x00)
+        self.i2cDevice_IC62_MCP9902.write_config_1(0x00)
+
+        # Initialize the I2C I/O expander devices.
+        self.i2c_io_exp_init()
 
 
 
@@ -663,6 +626,71 @@ class MdtTp_CM:
     # Silicon labs clock ICs.
     # ===============================================================
 
+    # Define the I2C clock devices.
+    def i2c_clk_define(self):
+        # I2C mux for clock I2C bus:
+        # IC36 (PCA9545APW): I2C port 3, slave address 0x70.
+        self.i2cDevice_IC36_PCA9545APW = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[3], 0x70, "IC36 (PCA9545APW)")
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        # I2C clock devices.
+        # IC1 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 2.
+        self.i2cDevice_IC1_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC1 (Si5345A)")
+        self.i2cDevice_IC1_Si5345A.muxChannel = 2
+        self.i2cDevice_IC1_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
+        self.i2cDevice_IC1_Si5345A.debugLevel = self.debugLevel
+        # IC2 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 0.
+        self.i2cDevice_IC2_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC2 (Si5345A)")
+        self.i2cDevice_IC2_Si5345A.muxChannel = 0
+        self.i2cDevice_IC2_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC2_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC2_Si5345A.debugLevel = self.debugLevel
+        # IC3 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 0.
+        self.i2cDevice_IC3_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC3 (Si5345A)")
+        self.i2cDevice_IC3_Si5345A.muxChannel = 0
+        self.i2cDevice_IC3_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC3_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC3_Si5345A.debugLevel = self.debugLevel
+        # IC4 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 0.
+        self.i2cDevice_IC4_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC4 (Si5345A)")
+        self.i2cDevice_IC4_Si5345A.muxChannel = 0
+        self.i2cDevice_IC4_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC4_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC4_Si5345A.debugLevel = self.debugLevel
+        # IC5 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 0.
+        self.i2cDevice_IC5_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC5 (Si5345A)")
+        self.i2cDevice_IC5_Si5345A.muxChannel = 0
+        self.i2cDevice_IC5_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC5_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC5_Si5345A.debugLevel = self.debugLevel
+        # IC6 (Si5345A): I2C port 3, slave address 0x68, clock I2C mux port 1.
+        self.i2cDevice_IC6_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x68, "IC6 (Si5345A)")
+        self.i2cDevice_IC6_Si5345A.muxChannel = 1
+        self.i2cDevice_IC6_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC6_0x68_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC6_Si5345A.debugLevel = self.debugLevel
+        # IC7 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 1.
+        self.i2cDevice_IC7_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC7 (Si5345A)")
+        self.i2cDevice_IC7_Si5345A.muxChannel = 1
+        self.i2cDevice_IC7_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC7_0x69_100IN0_10_400_10_400_10_400_10_400_10_FB-Registers.txt")
+        self.i2cDevice_IC7_Si5345A.debugLevel = self.debugLevel
+        # IC8 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 1.
+        self.i2cDevice_IC8_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC8 (Si5345A)")
+        self.i2cDevice_IC8_Si5345A.muxChannel = 1
+        self.i2cDevice_IC8_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC8_0x6A_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC8_Si5345A.debugLevel = self.debugLevel
+        # IC9 (Si5345A): I2C port 3, slave address 0x6b, clock I2C mux port 1.
+        self.i2cDevice_IC9_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6b, "IC9 (Si5345A)")
+        self.i2cDevice_IC9_Si5345A.muxChannel = 1
+        self.i2cDevice_IC9_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC9_0x6B_100IN0_10_400_10_400_10_400_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC9_Si5345A.debugLevel = self.debugLevel
+        # IC10 (Si5345A): I2C port 3, slave address 0x69, clock I2C mux port 2.
+        self.i2cDevice_IC10_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x69, "IC10 (Si5345A)")
+        self.i2cDevice_IC10_Si5345A.muxChannel = 2
+        self.i2cDevice_IC10_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC10_0x69_100IN1_NA_NA_200_NA_NA_NA_NA_NA_NA_FB-Registers.txt")
+        self.i2cDevice_IC10_Si5345A.debugLevel = self.debugLevel
+        # IC12 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 2.
+        self.i2cDevice_IC12_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC12 (Si5345A)")
+        self.i2cDevice_IC12_Si5345A.muxChannel = 2
+        self.i2cDevice_IC12_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC12_0x6A_100IN2_10_400_NA_FB-Registers.txt")
+        self.i2cDevice_IC12_Si5345A.debugLevel = self.debugLevel
+
+
+
     # Program a single Silicon Labs clock IC from a register map file.
     def clk_prog_device_file(self, i2cDevice):
         i2cDevice.debugLevel = self.debugLevel
@@ -724,3 +752,421 @@ class MdtTp_CM:
         self.clk_prog_device_file(self.i2cDevice_IC9_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
+
+
+
+    # ===============================================================
+    # I2C I/O expander devices.
+    # ===============================================================
+
+    # Define the I2C I/O expander devices.
+    def i2c_io_exp_define(self):
+        # I2C I/O expander devices.
+        # IC39 (PCA9535BS): I2C port 3, slave address 0x21.
+        self.i2cDevice_IC39_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[3], 0x21, "IC39 (PCA9535BS)")
+        self.i2cDevice_IC39_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC39_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["CLK_EXT_DBG_CLEAN_nRST",      self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_FRQTBL",    self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_FRQSEL0",   self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_FRQSEL1",   self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_FRQSEL2",   self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_FRQSEL3",   self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_BWSEL1",    self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_BWSEL0",    self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_LOS",       self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_LOL",       self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC39_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_INC",       self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""],
+            ["CLK_EXT_DBG_CLEAN_DEC",       self.i2cDevice_IC39_PCA9535BS.hwIoOutput,   0,      0,      ""]
+        ]
+        # IC40 (PCA9535BS): I2C port 3, slave address 0x23(!).
+        self.i2cDevice_IC40_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[3], 0x23, "IC40 (PCA9535BS)")
+        self.i2cDevice_IC40_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC40_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["CLK_FF_135_0_INTRb",          self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_135_0_RSTb",           self.i2cDevice_IC40_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_135_0_LOLb",           self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_135_1_INTRb",          self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_135_1_RSTb",           self.i2cDevice_IC40_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_135_1_LOLb",           self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_79_0_INTRb",           self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_79_0_RSTb",            self.i2cDevice_IC40_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_79_0_LOLb",            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_79_1_INTRb",           self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_79_1_RSTb",            self.i2cDevice_IC40_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_79_1_LOLb",            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC40_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC41 (PCA9535BS): I2C port 3, slave address 0x22(!).
+        self.i2cDevice_IC41_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[3], 0x22, "IC41 (PCA9535BS)")
+        self.i2cDevice_IC41_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC41_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["CLK_FF_024_0_INTRb",          self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_024_0_RSTb",           self.i2cDevice_IC41_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_024_0_LOLb",           self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_024_1_INTRb",          self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_024_1_RSTb",           self.i2cDevice_IC41_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_024_1_LOLb",           self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_68_0_INTRb",           self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_68_0_RSTb",            self.i2cDevice_IC41_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_68_0_LOLb",            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_68_1_INTRb",           self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_68_1_RSTb",            self.i2cDevice_IC41_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_68_1_LOLb",            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC41_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC42 (PCA9535BS): I2C port 3, slave address 0x24.
+        self.i2cDevice_IC42_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[3], 0x24, "IC42 (PCA9535BS)")
+        self.i2cDevice_IC42_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC42_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["FF_CLK_INTRb",                self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF_CLK_RSTb",                 self.i2cDevice_IC42_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF_CLK_LOLb",                 self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_TD_0_INTRb",           self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["CLK_FF_TD_0_RSTb",            self.i2cDevice_IC42_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["CLK_FF_TD_0_LOLb",            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["SM_INTRb",                    self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["SM_RSTb",                     self.i2cDevice_IC42_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["SM_LOLb",                     self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["SM_LOSb",                     self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["",                            self.i2cDevice_IC42_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC43 (PCA9535BS): I2C port 5, slave address 0x20.
+        self.i2cDevice_IC43_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[5], 0x20, "IC43 (PCA9535BS)")
+        self.i2cDevice_IC43_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC43_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["FF0_TX_PRESENTL",             self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF0_TX_INTL",                 self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF0_TX_ResetL",               self.i2cDevice_IC43_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF0_RX_PRESENTL",             self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF0_RX_INTL",                 self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF0_RX_ResetL",               self.i2cDevice_IC43_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF2_TX_PRESENTL",             self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF2_TX_INTL",                 self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF2_TX_ResetL",               self.i2cDevice_IC43_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF2_RX_PRESENTL",             self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF2_RX_INTL",                 self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF2_RX_ResetL",               self.i2cDevice_IC43_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF4_TX_PRESENTL",             self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF4_TX_INTL",                 self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF4_TX_ResetL",               self.i2cDevice_IC43_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["",                            self.i2cDevice_IC43_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC44 (PCA9535BS): I2C port 5, slave address 0x21.
+        self.i2cDevice_IC44_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[5], 0x21, "IC44 (PCA9535BS)")
+        self.i2cDevice_IC44_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC44_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["FF4_RX_PRESENTL",             self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF4_RX_INTL",                 self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF4_RX_ResetL",               self.i2cDevice_IC44_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF6_TX_PRESENTL",             self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF6_TX_INTL",                 self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF6_TX_ResetL",               self.i2cDevice_IC44_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF6_RX_PRESENTL",             self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF6_RX_INTL",                 self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF6_RX_ResetL",               self.i2cDevice_IC44_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF8_TX_PRESENTL",             self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF8_TX_INTL",                 self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF8_TX_ResetL",               self.i2cDevice_IC44_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF8_RX_PRESENTL",             self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF8_RX_INTL",                 self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF8_RX_ResetL",               self.i2cDevice_IC44_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["",                            self.i2cDevice_IC44_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC45 (PCA9535BS): I2C port 5, slave address 0x22.
+        self.i2cDevice_IC45_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[5], 0x22, "IC45 (PCA9535BS)")
+        self.i2cDevice_IC45_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC45_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["FF1_TX_PRESENTL",             self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF1_TX_INTL",                 self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF1_TX_ResetL",               self.i2cDevice_IC45_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF1_RX_PRESENTL",             self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF1_RX_INTL",                 self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF1_RX_ResetL",               self.i2cDevice_IC45_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF3_TX_PRESENTL",             self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF3_TX_INTL",                 self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF3_TX_ResetL",               self.i2cDevice_IC45_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF3_RX_PRESENTL",             self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF3_RX_INTL",                 self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF3_RX_ResetL",               self.i2cDevice_IC45_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF5_TX_PRESENTL",             self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF5_TX_INTL",                 self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF5_TX_ResetL",               self.i2cDevice_IC45_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["",                            self.i2cDevice_IC45_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+        # IC46 (PCA9535BS): I2C port 5, slave address 0x23.
+        self.i2cDevice_IC46_PCA9535BS = I2C_PCA9535.I2C_PCA9535(self.mcuI2C[5], 0x23, "IC46 (PCA9535BS)")
+        self.i2cDevice_IC46_PCA9535BS.debugLevel = self.debugLevel
+        self.i2cDevice_IC46_PCA9535BS.ioMap = [
+            # signal name                   input / output                            default   pol.    comment
+            ["FF5_RX_PRESENTL",             self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF5_RX_INTL",                 self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF5_RX_ResetL",               self.i2cDevice_IC46_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF7_TX_PRESENTL",             self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF7_TX_INTL",                 self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF7_TX_ResetL",               self.i2cDevice_IC46_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF7_RX_PRESENTL",             self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF7_RX_INTL",                 self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF7_RX_ResetL",               self.i2cDevice_IC46_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF9_TX_PRESENTL",             self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF9_TX_INTL",                 self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF9_TX_ResetL",               self.i2cDevice_IC46_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["FF9_RX_PRESENTL",             self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF9_RX_INTL",                 self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""],
+            ["FF9_RX_ResetL",               self.i2cDevice_IC46_PCA9535BS.hwIoOutput,   1,      0,      ""],
+            ["",                            self.i2cDevice_IC46_PCA9535BS.hwIoInput,    0,      0,      ""]
+        ]
+
+        # List of all I2C I/O expander devices.
+        self.i2cIOExpDevs = [
+            self.i2cDevice_IC39_PCA9535BS,
+            self.i2cDevice_IC40_PCA9535BS,
+            self.i2cDevice_IC41_PCA9535BS,
+            self.i2cDevice_IC42_PCA9535BS,
+            self.i2cDevice_IC43_PCA9535BS,
+            self.i2cDevice_IC44_PCA9535BS,
+            self.i2cDevice_IC45_PCA9535BS,
+            self.i2cDevice_IC46_PCA9535BS
+        ]
+        return 0
+
+
+
+    # Initialize the I2C I/O expander devices.
+    def i2c_io_exp_init(self):
+        # Load the default setup for all I2C I/O expander devices.
+        ret = self.i2c_io_exp_setup_default()
+        return ret
+
+
+
+    # Load the default setup for all I2C I/O expander devices.
+    def i2c_io_exp_setup_default(self):
+        for dev in self.i2cIOExpDevs:
+            regConfig = 0
+            regOutput = 0
+            regPolarity = 0
+            # Assemble the output, polarity inversion and configuration registers.
+            for ioIdx, ioMap in enumerate(dev.ioMap):
+                regConfig   |= (ioMap[1] & 0x1) << ioIdx    # Configuration register.
+                regOutput   |= (ioMap[2] & 0x1) << ioIdx    # Output register.
+                regPolarity |= (ioMap[3] & 0x1) << ioIdx    # Polarity inversion register.
+            # Load the settings into the device.
+            if self.debugLevel >= 2:
+                print(self.prefixDebug + "Setting up the I2C I/O expander {0:s}:".format(dev.deviceName))
+                print(self.prefixDebug + "    Configuration register      : 0x{0:04x}".format(regConfig))
+                print(self.prefixDebug + "    Output register             : 0x{0:04x}".format(regOutput))
+                print(self.prefixDebug + "    Polarity inversion register : 0x{0:04x}".format(regPolarity))
+            dev.write_config(regConfig)
+            dev.write_output(regOutput)
+            dev.write_polarity(regPolarity)
+        return 0
+
+
+
+    # Get the I2C I//O expander device and the I/O number from the signal name.
+    def i2c_io_exp_signal2dev_io(self, signalName):
+        if self.debugLevel >= 2:
+            print(self.prefixDebug + "Getting the I2C I/O expander device and the I/O number from the signal name `" + signalName + "'.")
+        for dev in self.i2cIOExpDevs:
+            for ioIdx, ioMap in enumerate(dev.ioMap):
+                if ioMap[0] == signalName:
+                    return 0, dev, ioIdx
+        print(self.prefixError + "Signal name `{0:s}' not valid!".format(signalName))
+        return 1, None, -1
+
+
+
+    # Get the status of all I2C I/O expander devices:
+    # - input level
+    # - configuration register
+    # - output register
+    # - polarity inversion register
+    def i2c_io_exp_get_status_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the status of all I2C I/O expander devices.")
+        for dev in self.i2cIOExpDevs:
+            print("Status of the I2C I/O expander {0:s}:".format(dev.deviceName))
+            ret, regInput = dev.read_input()
+            ret, regConfig = dev.read_config()
+            ret, regOutput = dev.read_output()
+            ret, regPolarity = dev.read_polarity()
+            print(self.prefixDetails + "Input level register        : 0x{0:04x}".format(regInput))
+            print(self.prefixDetails + "Configuration register      : 0x{0:04x}".format(regConfig))
+            print(self.prefixDetails + "Output register             : 0x{0:04x}".format(regOutput))
+            print(self.prefixDetails + "Polarity inversion register : 0x{0:04x}".format(regPolarity))
+        return 0
+
+
+
+    # Get the status of one I/O by the signal name.
+    # - input level
+    # - configuration register
+    # - output register
+    # - polarity inversion register
+    def i2c_io_exp_get_status(self, signalName):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the status of signal `" + signalName + "'.")
+        ret, dev, ioIdx = self.i2c_io_exp_signal2dev_io(signalName)
+        if ret:
+            return ret
+        ret, regInput = dev.read_input()
+        ret, regConfig = dev.read_config()
+        ret, regOutput = dev.read_output()
+        ret, regPolarity = dev.read_polarity()
+        if ret:
+            print(self.prefixError + "Error reading the status of signal `" + signalName + "'!")
+            return ret
+        print("Status of {0:s}, I/O {1:2d}, {2:s}:".format(dev.deviceName, ioIdx, '"' + signalName + '"'))
+        print(self.prefixDetails + "Input level register        : {0:d}".format((regInput >> ioIdx) & 0x1))
+        print(self.prefixDetails + "Configuration register      : {0:d}".format((regConfig >> ioIdx) & 0x1))
+        print(self.prefixDetails + "Output register             : {0:d}".format((regOutput >> ioIdx) & 0x1))
+        print(self.prefixDetails + "Polarity inversion register : {0:d}".format((regPolarity >> ioIdx) & 0x1))
+        return 0
+
+
+
+    # Get the input level of all ports of all I2C I/O expander devices.
+    def i2c_io_exp_get_input_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the input levels of all ports of all I2C I/O expander devices.")
+        for dev in self.i2cIOExpDevs:
+            print("Input levels of the I2C I/O expander {0:s}:".format(dev.deviceName))
+            ret, regInput = dev.read_input()
+            for ioIdx, ioMap in enumerate(dev.ioMap):
+                print(self.prefixDetails + "I/O {0:2d}, {1:28s} : {2:d}".format(ioIdx, "`" + ioMap[0] + "'", (regInput >> ioIdx) & 0x1))
+        return 0
+
+
+
+    # Get the input level of one I/O by the signal name.
+    def i2c_io_exp_get_input(self, signalName):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the input level of signal `" + signalName + "'.")
+        ret, dev, ioIdx = self.i2c_io_exp_signal2dev_io(signalName)
+        if ret:
+            return ret
+        ret, regInput = dev.read_input()
+        if ret:
+            print(self.prefixError + "Error reading the input level of signal `" + signalName + "'!")
+            return ret
+        print("Input level of {0:s}, I/O {1:2d}, {2:s}: {3:d}".format(dev.deviceName, ioIdx, '"' + signalName + '"', (regInput >> ioIdx) & 0x1))
+        return 0
+
+
+
+    # Get the output value of all ports of all I2C I/O expander devices.
+    def i2c_io_exp_get_output_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the output values of all ports of all I2C I/O expander devices.")
+        for dev in self.i2cIOExpDevs:
+            print("Output values of the I2C I/O expander {0:s}:".format(dev.deviceName))
+            ret, regOutput = dev.read_output()
+            for ioIdx, ioMap in enumerate(dev.ioMap):
+                print(self.prefixDetails + "I/O {0:2d}, {1:28s} : {2:d}".format(ioIdx, "`" + ioMap[0] + "'", (regOutput >> ioIdx) & 0x1))
+        return 0
+
+
+
+    # Get the output value of one I/O by the signal name.
+    def i2c_io_exp_get_output(self, signalName):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the output value of signal `" + signalName + "'.")
+        ret, dev, ioIdx = self.i2c_io_exp_signal2dev_io(signalName)
+        if ret:
+            return ret
+        ret, regOutput = dev.read_output()
+        if ret:
+            print(self.prefixError + "Error reading the output value of signal `" + signalName + "'!")
+            return ret
+        print("Output value of {0:s}, I/O {1:2d}, {2:s}: {3:d}".format(dev.deviceName, ioIdx, '"' + signalName + '"', (regOutput >> ioIdx) & 0x1))
+        return 0
+
+
+
+    # Set the output value of all ports of all I2C I/O expander devices.
+    def i2c_io_exp_set_output_all(self, values):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Setting the output values of all ports of all I2C I/O expander devices.")
+        if len(self.i2cIOExpDevs) != len(values):
+            print(self.prefixError + "The size of the list of values does not match the size of the list of I2C I/O expander devices!")
+            return 1
+        for devIdx, dev in enumerate(self.i2cIOExpDevs):
+            regOutput = values[devIdx] & 0xffff
+            ret = dev.write_output(regOutput)
+            if ret:
+                print(self.prefixError + "Error writing value 0x{0:04x} the output register of device `{1:s}'!".format(regOutput, dev))
+                return ret
+        return 0
+
+
+
+    # Set the output value of one I/O by the signal name.
+    def i2c_io_exp_set_output(self, signalName, value):
+        value &= 0x1
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Setting the output value of signal `" + signalName + "' to {0:d}.".format(value))
+        ret, dev, ioIdx = self.i2c_io_exp_signal2dev_io(signalName)
+        if ret:
+            return ret
+        ret, regOutput = dev.read_output()
+        if ret:
+            print(self.prefixError + "Error reading the output value of signal `" + signalName + "'!")
+            return ret
+        regOutput &= ~(0x1 << ioIdx)
+        regOutput |= value << ioIdx
+        ret = dev.write_output(regOutput)
+        if ret:
+            print(self.prefixError + "Error setting the output value of signal `" + signalName + "' to {0:d}!".format(value))
+            return ret
+        return 0
+
+
+
+    # Reset all clock chips using the I2C I/O expander devices.
+    def i2c_io_exp_reset_clk(self):
+        clkResetSignals = [
+            "CLK_EXT_DBG_CLEAN_nRST",
+            "CLK_FF_135_0_RSTb",
+            "CLK_FF_135_1_RSTb",
+            "CLK_FF_79_0_RSTb",
+            "CLK_FF_79_1_RSTb",
+            "CLK_FF_024_0_RSTb",
+            "CLK_FF_024_1_RSTb",
+            "CLK_FF_68_0_RSTb",
+            "CLK_FF_68_1_RSTb",
+            "FF_CLK_RSTb",
+            "CLK_FF_TD_0_RSTb",
+            "SM_RSTb"
+        ]
+        # Assert reset (active low).
+        for signal in clkResetSignals:
+            self.i2c_io_exp_set_output(signal, 0)
+        # Wait some time.
+        time.sleep(0.1)
+        # De-assert reset (active low).
+        for signal in clkResetSignals:
+            self.i2c_io_exp_set_output(signal, 1)
+
