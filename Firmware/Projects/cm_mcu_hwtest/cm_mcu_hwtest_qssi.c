@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 16 Sep 2022
-// Rev.: 16 Sep 2022
+// Rev.: 20 Sep 2022
 //
 // QSSI functions of the hardware test firmware running on the ATLAS MDT
 // Trigger Processor (TP) Command Module (CM) prototype MCU.
@@ -26,7 +26,9 @@ int QssiAccess(char *pcCmd, char *pcParam)
 {
     int i;
     uint8_t ui8QssiPort = 0;
-    uint8_t ui8QssiRw = 0;   // 0 = write; 1 = read
+    uint8_t ui8QssiMode = 0;    // 0 = SSI; 1 = QSSI
+    uint8_t ui8QssiRw = 0;      // 0 = write; 1 = read
+    bool bQssiFrameEnd = true;  // true = end frame; false = do not end frame
     uint8_t ui8QssiDataNum = 0;
     uint32_t pui32QssiData[32];
     tQSSI *psQssi;
@@ -43,26 +45,44 @@ int QssiAccess(char *pcCmd, char *pcParam)
             }
         } else if (i == 1) {
             if (pcParam == NULL) {
+                UARTprintf("%s: QSSI mode required after command `%s'.", UI_STR_ERROR, pcCmd);
+                return -1;
+            } else {
+                ui8QssiMode = (uint8_t) strtoul(pcParam, (char **) NULL, 0) & 0x01;
+            }
+        } else if (i == 2) {
+            if (pcParam == NULL) {
                 UARTprintf("%s: QSSI read/write required after command `%s'.", UI_STR_ERROR, pcCmd);
                 return -1;
             } else {
                 ui8QssiRw = (uint8_t) strtoul(pcParam, (char **) NULL, 0) & 0x01;
             }
+        } else if (i == 3) {
+            if (pcParam == NULL) {
+                UARTprintf("%s: QSSI end frame required after command `%s'.", UI_STR_ERROR, pcCmd);
+                return -1;
+            } else {
+                bQssiFrameEnd = (bool) strtoul(pcParam, (char **) NULL, 0) & 0x01;
+            }
         } else {
-            if (i == 2 && ui8QssiRw == 0 && pcParam == NULL) {
+            if (i == 4 && ui8QssiRw == 0 && pcParam == NULL) {
                 UARTprintf("%s: At least one data byte required after QSSI write command `%s'.", UI_STR_ERROR, pcCmd);
                 return -1;
             }
+            if (i == 4 && ui8QssiRw == 1 && pcParam == NULL) {
+                UARTprintf("%s: Number of data to read required after QSSI read command `%s'.", UI_STR_ERROR, pcCmd);
+                return -1;
+            }
             if (pcParam == NULL) break;
-            else pui32QssiData[i-2] = (uint32_t) strtoul(pcParam, (char **) NULL, 0) & 0xffff;
+            else pui32QssiData[i-4] = (uint32_t) strtoul(pcParam, (char **) NULL, 0) & 0xffff;
         }
     }
-    if (i < 2) return -1;
+    if (i < 5) return -1;
     // Check if the QSSI port number is valid. If so, set the psQssi pointer to the selected QSSI port struct.
     if (QssiPortCheck(ui8QssiPort, &psQssi)) return -1;
     // QSSI write.
     if (ui8QssiRw == 0) {
-        i32QssiStatus = QssiMasterWrite(psQssi, pui32QssiData, i - 2);
+        i32QssiStatus = QssiMasterWrite(psQssi, pui32QssiData, i - 4, ui8QssiMode, bQssiFrameEnd);
         // Check the QSSI status.
         if (i32QssiStatus) {
             UARTprintf("%s: Error status from the QSSI master %d: %d", UI_STR_ERROR, ui8QssiPort, i32QssiStatus);
@@ -71,35 +91,23 @@ int QssiAccess(char *pcCmd, char *pcParam)
         }
     // QSSI read.
     } else {
-        // Read all available data.
-        if (i == 2) {
-            for (int iCnt = 0; ; iCnt++) {
-                i32QssiStatus = QssiMasterRead(psQssi, pui32QssiData, 1);
-                if (i32QssiStatus != 1) {
-                    if (iCnt == 0) UARTprintf("%s: No data available.", UI_STR_WARNING);
-                    break;
-                } else {
-                    if (iCnt == 0) UARTprintf("%s. Data:", UI_STR_OK);
-                    UARTprintf(" 0x%02x", pui32QssiData[0]);
-                }
-            }
         // Read given number of data.
+        ui8QssiDataNum = pui32QssiData[0];
+        if (ui8QssiDataNum > sizeof(pui32QssiData) / sizeof(pui32QssiData[0])) {
+            ui8QssiDataNum = sizeof(pui32QssiData) / sizeof(pui32QssiData[0]);
+        }
+        i32QssiStatus = QssiMasterRead(psQssi, pui32QssiData, ui8QssiDataNum, ui8QssiMode, bQssiFrameEnd);
+        // Check the QSSI status.
+        if (i32QssiStatus < 0) {
+            UARTprintf("%s: Error status from the QSSI master %d: %d", UI_STR_ERROR, ui8QssiPort, i32QssiStatus);
+        } else if (i32QssiStatus != ui8QssiDataNum) {
+            UARTprintf("%s: Could only read %d data bytes from the QSSI master %d instead of %d.", UI_STR_WARNING, i32QssiStatus, ui8QssiPort, ui8QssiDataNum);
         } else {
-             ui8QssiDataNum = pui32QssiData[0];
-            if (ui8QssiDataNum > sizeof(pui32QssiData) / sizeof(pui32QssiData[0])) {
-                ui8QssiDataNum = sizeof(pui32QssiData) / sizeof(pui32QssiData[0]);
-            }
-            i32QssiStatus = QssiMasterRead(psQssi, pui32QssiData, ui8QssiDataNum);
-            // Check the QSSI status.
-            if (i32QssiStatus != ui8QssiDataNum) {
-                UARTprintf("%s: Could only read %d data bytes from the QSSI master %d instead of %d.", UI_STR_WARNING, i32QssiStatus, ui8QssiPort, ui8QssiDataNum);
-            } else {
-                UARTprintf("%s.", UI_STR_OK);
-            }
-            if (i32QssiStatus > 0) {
-                UARTprintf(" Data:");
-                for (i = 0; i < i32QssiStatus; i++) UARTprintf(" 0x%02x", pui32QssiData[i]);
-            }
+            UARTprintf("%s.", UI_STR_OK);
+        }
+        if (i32QssiStatus > 0) {
+            UARTprintf(" Data:");
+            for (i = 0; i < i32QssiStatus; i++) UARTprintf(" 0x%02x", pui32QssiData[i]);
         }
     }
 

@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 16 Sep 2022
-// Rev.: 16 Sep 2022
+// Rev.: 20 Sep 2022
 //
 // Header file for the Quad Synchronous Serial Interface (QSSI) functions on
 // the ATLAS MDT Trigger Processor (TP) Command Module (CM) MCU.
@@ -54,8 +54,8 @@ typedef struct {
 
 // Function prototypes.
 void QssiMasterInit(tQSSI *psQssi);
-uint32_t QssiMasterWrite(tQSSI *psQssi, uint32_t *pui32Data, uint8_t ui8Length);
-int32_t QssiMasterRead(tQSSI *psQssi, uint32_t *pui32Data, uint8_t ui8Length);
+uint32_t QssiMasterWrite(tQSSI *psQssi, uint32_t *pui32Data, uint8_t ui8Length, uint8_t mode, bool bFrameEnd);
+int32_t QssiMasterRead(tQSSI *psQssi, uint32_t *pui32Data, uint8_t ui8Length, uint8_t mode, bool bFrameEnd);
 
 
 
