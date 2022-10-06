@@ -1,5 +1,5 @@
-Changelog for the MDT-TP Prototype MCU Firmware for Hardware Testing
-====================================================================
+Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
+=======================================================================
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 Date: 06 Oct 2022
