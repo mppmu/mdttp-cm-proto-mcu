@@ -1,0 +1,23 @@
+Changelog for the MDT-TP Prototype MCU Firmware for Hardware Testing
+====================================================================
+Auth: M. Fras, Electronics Division, MPI for Physics, Munich
+Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
+Date: 06 Oct 2022
+Rev.: 06 Oct 2022
+
+
+
+Firmware Versions
+=================
+* 0.0.1 - 07 Jun 2022
+  - Initial version with support for GPIOs, I2C and UART.
+* 0.0.2 - 11 Aug 2022
+  - Fixed evaluation and assignment of I2C master ports.
+* 0.0.3 - 08 Sep 2022
+  - Inverted the polarity of the I2C reset signals. 
+* 0.0.4 - 16 Sep 2022
+  - Added QSSI support in the firmware for access to the IS25LP064A-JBLA3
+    64 Mbit SPI and quad SPI flash memory device.
+* 0.0.4 - 20 Sep 2022
+  - Updated the QSSI functions for better flexibility.
+
