@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 Date: 06 Oct 2022
-Rev.: 06 Oct 2022
+Rev.: 11 Oct 2022
 
 
 
@@ -22,4 +22,8 @@ Firmware Versions
   - Updated the QSSI functions for better flexibility.
 * 0.0.5 - 06 Oct 2022
   - Fixed the power down sequence for the FPGA power.
+* 0.0.6 - 11 Oct 2022
+  - Changed the type of the GPIO PF0 (pin 42) from open drain to output, so
+    that it can drive a high level on the net FPGA_PROG_B against the pulldown
+    resistor R180. This is requrired to download the FPGA firmware.
 
