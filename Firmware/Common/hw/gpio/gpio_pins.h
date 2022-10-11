@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 07 Jun 2022
+// Rev.: 11 Oct 2022
 //
 // Header file for the GPIO pin definitions and functions for the TI Tiva
 // TM4C1290 MCU on the ATLAS MDT Trigger Processor (TP) Command Module (CM)
@@ -22,7 +22,7 @@
 #define GPIO_DEFAULT_LED_CM_USER            0x000   // 8..0: MCU_USER_LED8 (red) .. MCU_USER_LED0 (green)
 #define GPIO_DEFAULT_LED_CM_STATUS          0x0     //    0: TEMP_ERR
 #define GPIO_DEFAULT_POWER_CTRL             0x00    // 7..0: PM2_CONTROL1, PM2_CONTROL0, PM1_CONTROL1, PM1_CONTROL0, PD_FF_EN, PD_MISC_EN, PD_FPGA_IO_EN, PD_FPGA_CORE_EN
-#define GPIO_DEFAULT_FPGA_CTRL_STAT         0x3     // 2..0: FPGA_DONE, FPGA_INIT_B, FPGA_PROG_B
+#define GPIO_DEFAULT_FPGA_CTRL_STAT         0x1     // 2..0: FPGA_DONE, FPGA_INIT_B, FPGA_PROG_B
 #define GPIO_DEFAULT_POWER_RESERVED_CTRL    0x000   // 5..0: P1V8_MISC_EN, P5V_MISC_EN, P3V3_MISC_EN, P0V9_MGT_EN, P1V2_MGT_EN, P1V8_FPGA_EN
 #define GPIO_DEFAULT_I2C_RESET              0x0     // 3..0: I2C_FF_0x22_RSTn, I2C_FF_0x21_RSTn, I2C_FF_0x20_RSTn, I2C_CLK_0x20_RSTn
 

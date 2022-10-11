@@ -20,7 +20,7 @@
 // ******************************************************************
 
 #define FW_NAME                     "cm_mcu_hwtest"
-#define FW_VERSION                  "0.0.6"
+#define FW_VERSION                  "0.0.7"
 #define FW_RELEASEDATE              "11 Oct 2022"
 
 

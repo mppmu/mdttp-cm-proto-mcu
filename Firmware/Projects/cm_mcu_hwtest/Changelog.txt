@@ -26,4 +26,8 @@ Firmware Versions
   - Changed the type of the GPIO PF0 (pin 42) from open drain to output, so
     that it can drive a high level on the net FPGA_PROG_B against the pulldown
     resistor R180. This is requrired to download the FPGA firmware.
+* 0.0.7 - 11 Oct 2022
+  - Changed the type of the GPIO PF1 (pin 43) from open drain to input, as the
+    level converter IC21 is configured to only drive the FPGA_INIT_B signal
+    from the FPGA to the MCU.
 

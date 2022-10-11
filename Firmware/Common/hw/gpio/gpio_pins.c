@@ -887,8 +887,8 @@ tGPIO g_sGpio_FPGACtrlStat1 = {
     GPIO_PORTF_BASE,
     GPIO_PIN_1,             // ui8Pins
     GPIO_STRENGTH_2MA,      // ui32Strength
-    GPIO_PIN_TYPE_OD,       // ui32PinType
-    false,                  // bInput: false = output, true = input
+    GPIO_PIN_TYPE_STD,      // ui32PinType
+    true,                   // bInput: false = output, true = input
     0                       // ui32IntType
 };
 // FPGA_DONE: PF2, 44
@@ -912,7 +912,6 @@ void GpioInit_FPGACtrlStat(void)
 void GpioSet_FPGACtrlStat(uint32_t ui32Val)
 {
     GpioOutputSetBool(&g_sGpio_FPGACtrlStat0, (bool) (ui32Val & 0x01));
-    GpioOutputSetBool(&g_sGpio_FPGACtrlStat1, (bool) (ui32Val & 0x02));
 }
 
 uint32_t GpioGet_FPGACtrlStat(void)
@@ -920,7 +919,7 @@ uint32_t GpioGet_FPGACtrlStat(void)
     uint32_t ui32Val = 0;
 
     ui32Val |= (GpioOutputGetBool(&g_sGpio_FPGACtrlStat0) & 0x1) << 0;
-    ui32Val |= (GpioOutputGetBool(&g_sGpio_FPGACtrlStat1) & 0x1) << 1;
+    ui32Val |= (GpioInputGetBool(&g_sGpio_FPGACtrlStat1) & 0x1) << 1;
     ui32Val |= (GpioInputGetBool(&g_sGpio_FPGACtrlStat2) & 0x1) << 2;
 
     return ui32Val;
