@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 01 Aug 2022
-# Rev.: 01 Aug 2022
+# Rev.: 23 Jan 2023
 #
 # Python class for communicating with the MCP9902 low-temperature remote diode
 # sensor IC.
@@ -164,30 +164,48 @@ class I2C_MCP9902:
     @classmethod
     def raw_to_temperature(cls, rawInt, rawFract):
         raw = ((rawInt & 0xff) << 3) | ((rawFract & 0xe0) >> 5)
-        if (raw >> 10) & 0x1:
-            raw = ~raw + 1
-            sign = -1
-        else:
-            sign = 1
-        temperature = sign * (((raw >> 3) & 0xff) + (raw & 0x3) * (0.125))
+        temperature = raw * 0.125
+        return temperature
+
+
+
+    # Convert a raw value to a temperature value for the extended range.
+    @classmethod
+    def raw_to_temperature_extended(cls, rawInt, rawFract):
+        raw = ((rawInt & 0xff) << 3) | ((rawFract & 0xe0) >> 5)
+        temperature = raw * 0.125 - 64
         return temperature
 
 
 
     # Read the internal diode temperature.
     def read_temp_int(self):
+        retCfg, valueCfg = self.read_reg(0x03)  # Educated guess: The configuration register with address 0x03 is for the internal diode.
+        if retCfg:
+            return retCfg, -128.0
         retInt, valueInt = self.read_reg(0x00)
         retFract, valueFract = self.read_reg(0x29)
-        temperature = self.raw_to_temperature(valueInt, valueFract)
+        # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
+        if valueCfg & 0x04:
+            temperature = self.raw_to_temperature_extended(valueInt, valueFract)
+        else
+            temperature = self.raw_to_temperature(valueInt, valueFract)
         return retInt | retFract, temperature
 
 
 
     # Read the external diode temperature.
     def read_temp_ext(self):
+        retCfg, valueCfg = self.read_reg(0x09)  # Educated guess: The configuration register with address 0x09 is for external diodes.
+        if retCfg:
+            return retCfg, -128.0
         retInt, valueInt = self.read_reg(0x01)
         retFract, valueFract = self.read_reg(0x10)
-        temperature = self.raw_to_temperature(valueInt, valueFract)
+        # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
+        if valueCfg & 0x04:
+            temperature = self.raw_to_temperature_extended(valueInt, valueFract)
+        else
+            temperature = self.raw_to_temperature(valueInt, valueFract)
         return retInt | retFract, temperature
 
 
