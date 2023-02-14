@@ -188,7 +188,7 @@ class I2C_MCP9902:
         # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
         if valueCfg & 0x04:
             temperature = self.raw_to_temperature_extended(valueInt, valueFract)
-        else
+        else:
             temperature = self.raw_to_temperature(valueInt, valueFract)
         return retInt | retFract, temperature
 
@@ -204,7 +204,7 @@ class I2C_MCP9902:
         # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
         if valueCfg & 0x04:
             temperature = self.raw_to_temperature_extended(valueInt, valueFract)
-        else
+        else:
             temperature = self.raw_to_temperature(valueInt, valueFract)
         return retInt | retFract, temperature
 
