@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 12 Jan 2023
+# Rev.: 14 Feb 2023
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -302,6 +302,13 @@ class MdtTp_CM:
         self.i2cDevice_IC61_MCP9902.write_config_1(0x00)
         self.i2cDevice_IC62_MCP9902.write_config_0(0x00)
         self.i2cDevice_IC62_MCP9902.write_config_1(0x00)
+
+        # Set write protection for all power ICs.
+        self.i2cDevice_IC26_LTM4700.wp_level_1()
+        self.i2cDevice_IC27_LTM4700.wp_level_1()
+        self.i2cDevice_IC58_LTC2977.wp_level_1()
+        self.i2cDevice_IC59_LTC2977.wp_level_1()
+
 
         # Initialize the I2C I/O expander devices.
         self.i2c_io_exp_init()
