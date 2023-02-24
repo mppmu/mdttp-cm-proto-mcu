@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 07 Jun 2022
+// Rev.: 24 Feb 2024
 //
 // GPIO functions of the hardware test firmware running on the ATLAS MDT
 // Trigger Processor (TP) Command Module (CM) prototype MCU.
@@ -111,7 +111,7 @@ int GpioGetSet(char *pcCmd, char *pcParam)
             UARTprintf("%s: GPIO %s is read-only!", UI_STR_WARNING, pcGpioType);
             return 1;
         }
-        ui32GpioGet = GpioGet_I2CInt();
+        ui32GpioGet = GpioGet_TempAlert();
     } else if (!strcasecmp(pcGpioType, "fpga")) {
         if (bGpioWrite) GpioSet_FPGACtrlStat(ui32GpioSet);
         ui32GpioGet = GpioGet_FPGACtrlStat();

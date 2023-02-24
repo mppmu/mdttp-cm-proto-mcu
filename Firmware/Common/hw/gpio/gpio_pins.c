@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 11 Oct 2022
+// Rev.: 24 Feb 2023
 //
 // GPIO pin definitions and functions for the TI Tiva TM4C1290 MCU on the ATLAS
 // MDT Trigger Processor (TP) Command Module (CM) prototype.
@@ -887,7 +887,7 @@ tGPIO g_sGpio_FPGACtrlStat1 = {
     GPIO_PORTF_BASE,
     GPIO_PIN_1,             // ui8Pins
     GPIO_STRENGTH_2MA,      // ui32Strength
-    GPIO_PIN_TYPE_STD,      // ui32PinType
+    GPIO_PIN_TYPE_OD,       // ui32PinType
     true,                   // bInput: false = output, true = input
     0                       // ui32IntType
 };
@@ -912,6 +912,7 @@ void GpioInit_FPGACtrlStat(void)
 void GpioSet_FPGACtrlStat(uint32_t ui32Val)
 {
     GpioOutputSetBool(&g_sGpio_FPGACtrlStat0, (bool) (ui32Val & 0x01));
+    GpioOutputSetBool(&g_sGpio_FPGACtrlStat1, (bool) (ui32Val & 0x02));
 }
 
 uint32_t GpioGet_FPGACtrlStat(void)
@@ -919,7 +920,7 @@ uint32_t GpioGet_FPGACtrlStat(void)
     uint32_t ui32Val = 0;
 
     ui32Val |= (GpioOutputGetBool(&g_sGpio_FPGACtrlStat0) & 0x1) << 0;
-    ui32Val |= (GpioInputGetBool(&g_sGpio_FPGACtrlStat1) & 0x1) << 1;
+    ui32Val |= (GpioOutputGetBool(&g_sGpio_FPGACtrlStat1) & 0x1) << 1;
     ui32Val |= (GpioInputGetBool(&g_sGpio_FPGACtrlStat2) & 0x1) << 2;
 
     return ui32Val;

@@ -348,8 +348,7 @@ class I2C_LTC2977:
         # High resolution only for odd channels and only if bit 9 of the configuration register of the channel is set.
         if channel & 0x1 == 0x1 and mfrConfig & (0x1 << 9):
             return 0, self.l11_to_float(voutRaw) / 1000     # This value is in mV!
-        else:
-            return 0, self.l16_to_float(voutRaw)
+        return 0, self.l16_to_float(voutRaw)
 
 
 

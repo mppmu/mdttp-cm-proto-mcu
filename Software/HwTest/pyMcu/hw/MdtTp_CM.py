@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 15 Feb 2023
+# Rev.: 24 Feb 2023
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -430,7 +430,7 @@ class MdtTp_CM:
     IC58_LTC2977_measurementNames =     ["P1V8_FPGA", "P1V8_FPGA", "<unused>", "<unused>", "P1V2_MGT", "P1V2_MGT", "P0V9_MGT", "P0V9_MGT"]
     IC58_LTC2977_currentSenseShunts =   [0, 0.005, 0, 0, 0, 0.003, 0, 0.005]
     IC59_LTC2977_measurementNames =     ["P1V8_MISC", "P1V8_MISC", "P3V3_MISC", "P3V3_MISC", "P5V_MISC", "P5V_MISC", "P3V3_FF", "P3V3_FF"]
-    IC59_LTC2977_currentSenseShunts =   [0, 0.01, 0, 0.025, 0, 0.25, 0, 0.005]
+    IC59_LTC2977_currentSenseShunts =   [0, 0.01, 0, 0.025, 0, 0.025, 0, 0.005]
     IC26_LTM4700_measurementNames =     ["FPGA 0.85V core 1/4", "FPGA 0.85V core 2/4"]
     IC27_LTM4700_measurementNames =     ["FPGA 0.85V core 3/4", "FPGA 0.85V core 4/4"]
 

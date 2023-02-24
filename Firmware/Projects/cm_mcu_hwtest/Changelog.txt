@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 Date: 06 Oct 2022
-Rev.: 11 Oct 2022
+Rev.: 24 Feb 2023
 
 
 
@@ -30,4 +30,7 @@ Firmware Versions
   - Changed the type of the GPIO PF1 (pin 43) from open drain to input, as the
     level converter IC21 is configured to only drive the FPGA_INIT_B signal
     from the FPGA to the MCU.
+* 0.0.8 - 24 Feb 2023
+  - Implemented changes made by Pro Design after finishing the type testing of
+    the CM prototype V1.
 
