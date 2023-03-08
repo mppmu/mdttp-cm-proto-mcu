@@ -33,4 +33,8 @@ Firmware Versions
 * 0.0.8 - 24 Feb 2023
   - Implemented changes made by Pro Design after finishing the type testing of
     the CM prototype V1.
+* 0.0.9 - 08 Mar 2023
+  - Changed GPIO PF0 (pin 42) driving the signal FPGA_PROG_B from push/pull to
+    open drain. This requires a patch on the CM prototype V1 board: The
+    pulldown resistor R180 must be removed and replaced by a pullup resistor.
 
