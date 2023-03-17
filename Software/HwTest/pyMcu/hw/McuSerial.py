@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 24 Apr 2020
-# Rev.: 09 Sep 2022
+# Rev.: 17 Mar 2023
 #
 # Python class for communicating with the TM4C1290NCPDT MCU over a serial port
 # (UART).
@@ -55,7 +55,7 @@ class McuSerial:
         self.ser.parity = serial.PARITY_NONE
         self.ser.stopbits = serial.STOPBITS_ONE
         #self.ser.timeout = None             # Blocking read.
-        self.ser.timeout = 0.0001           # Non-blocking read.
+        self.ser.timeout = 0.00015          # Non-blocking read. Empiric value based on a Core i7-9700K CPU (min stable value: 0.00013).
         self.ser.xonxoff = False            # Disable software flow control.
         self.ser.rtscts = False             # Disable hardware (RTS/CTS) flow control.
         self.ser.dsrdtr = False             # Disable hardware (DSR/DTR) flow control.
