@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 24 Feb 2024
+// Rev.: 07 Jun 2022
 //
 // GPIO functions of the hardware test firmware running on the ATLAS MDT
 // Trigger Processor (TP) Command Module (CM) prototype MCU.

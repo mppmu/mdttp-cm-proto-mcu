@@ -29,7 +29,7 @@
 
 // Configure the serail boot loader to use the front panel mini USB port. If
 // not defined, the SM SoC UART will be used.
-//#define MDTTP_CM_MCU_BL_UART_FRONTPANEL
+#define MDTTP_CM_MCU_BL_UART_FRONTPANEL
 
 
 

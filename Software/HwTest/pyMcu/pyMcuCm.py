@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 14 Feb 2023
+# Rev.: 16 Sep 2022
 #
 # Python script to access the ATLAS MDT Trigger Processor (TP) Command Module
 # (CM) Prototype via the TI Tiva TM4C1290 MCU.
@@ -45,13 +45,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run an automated set of MCU tests.')
     parser.add_argument('-c', '--command', action='store', type=str,
                         choices=['power_up', 'power_down', 'power_detail',
-                                 'sn', 'status', 'mon_temp',
-                                 'init',
+                                 'sn', 'sn_sm', 'status', 'mon_temp',
                                  'mcu_cmd_raw', 'mcu_led_user',
                                  'i2c_reset', 'i2c_detect', "i2c_mux_reset",
                                  'i2c_io_exp_init', 'i2c_io_exp_status', 'i2c_io_exp_get_input', 'i2c_io_exp_get_output', 'i2c_io_exp_set_output',
                                  'pm_status', 'pm_status_raw',
-                                 'clk_setup', 'clk_reset'],
+                                 'clk_setup', 'clk_reset', 'ff_status'],
                         dest='command', default='status',
                         help='Command to execute on the CM.')
     parser.add_argument('-d', '--device', action='store', type=str,
@@ -84,10 +83,8 @@ if __name__ == "__main__":
         mdtTp_CM.power_status_detail()
     elif command == "sn":
         mdtTp_CM.serial_number()
-    elif command == "init":
-        mdtTp_CM.power_up()
-        mdtTp_CM.init_hw()
-        mdtTp_CM.clk_prog_all()
+    elif command == "sn_sm":
+        mdtTp_CM.serial_number_sm()
     elif command == "status":
         print("Board Serial Number")
         print("===================")
@@ -172,6 +169,8 @@ if __name__ == "__main__":
             mdtTp_CM.clk_prog_all()
     elif command == "clk_reset":
         mdtTp_CM.i2c_io_exp_reset_clk()
+    elif command == "ff_status":
+        mdtTp_CM.read_ff_status()
     else:
         print(prefixError + "Command `{0:s}' not supported!".format(command))
 

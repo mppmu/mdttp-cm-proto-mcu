@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 24 Feb 2023
+# Rev.: 16 Sep 2022
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -104,8 +104,6 @@ class MdtTp_CM:
         if ret:
             self.errorCount += 1
             print(self.prefixError + "CM power up failed!")
-        # Wait some time so that the newly powered devices are ready for operation.
-        time.sleep(0.2)
         return ret
 
 
@@ -161,6 +159,23 @@ class MdtTp_CM:
         ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_IC22_DS28CM00.read_all()
         if ret:
             print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_IC22_DS28CM00.deviceName)
+            return ret
+        print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
+        print("Serial number: 0x{0:012x}".format(serialNumber))
+        print("CRC: 0x{0:02x}".format(crc))
+        if crcError:
+            self.errorCount += 1
+            print(self.prefixError + "CRC error detected!")
+            return 1
+        return 0
+
+    # Read the serial number of the SM.
+    def serial_number_sm(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_SM_DS28CM00.deviceName)
+        ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_SM_DS28CM00.read_all()
+        if ret:
+            print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_SM_DS28CM00.deviceName)
             return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
@@ -261,6 +276,11 @@ class MdtTp_CM:
         self.i2cDevice_IC22_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[4], 0x50, "IC22 (DS28CM00)")
         self.i2cDevice_IC22_DS28CM00.debugLevel = self.debugLevel
 
+        # S;: DS28CM00 silicon serial number IC.
+        # I2C port 7, slave address 0x50.
+        self.i2cDevice_SM_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[7], 0x50, "SM (DS28CM00)")
+        self.i2cDevice_SM_DS28CM00.debugLevel = self.debugLevel
+
         # MCP9902 low-temperature remote diode sensor IC.
         # IC60: I2C port 4, slave address 0x3c, VU13P temperature.
         self.i2cDevice_IC60_MCP9902 = I2C_MCP9902.I2C_MCP9902(self.mcuI2C[4], 0x3c, "IC60 (MCP9902)")
@@ -287,7 +307,49 @@ class MdtTp_CM:
 
         # Define the I2C I/O expander devices.
         self.i2c_io_exp_define()
+ 
+        # Firefly's
+        self.i2cDevice_FF_I2CMUX_0x70 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x70, "FF_MUX_0x70");
+        self.i2cDevice_FF_I2CMUX_0x71 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x71, "FF_MUX_0x71");
+        self.i2cDevice_FF_I2CMUX_0x72 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x72, "FF_MUX_0x72");
+        self.i2cDevice_FF_tx = I2C_FireFly.I2C_FireFly(self.mcuI2C[2], 0x50, "FF_TX", 'tx'); 
+        self.i2cDevice_FF_rx = I2C_FireFly.I2C_FireFly(self.mcuI2C[2], 0x54, "FF_RX", 'rx'); 
 
+    # Read FF status
+    def read_ff(self, ff):
+        iret, temp = self.i2cDevice_FF_tx.read_temperature();
+        iret, vcc = self.i2cDevice_FF_tx.read_vcc();
+        print("FF%d TX: %d °C %.2f V" % (ff, temp, vcc));
+        iret, temp = self.i2cDevice_FF_rx.read_temperature();
+        iret, vcc = self.i2cDevice_FF_rx.read_vcc();
+        print("FF%d RX: %d °C %.2f V" % (ff,temp, vcc));
+    def read_ff_status(self):
+        self.i2cDevice_FF_I2CMUX_0x70.disable();
+        self.i2cDevice_FF_I2CMUX_0x71.disable();
+        self.i2cDevice_FF_I2CMUX_0x72.disable();
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([0]);
+        self.read_ff(0);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([1]);
+        self.read_ff(2);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([2]);
+        self.read_ff(4);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([3]);
+        self.read_ff(6);
+        self.i2cDevice_FF_I2CMUX_0x70.disable();
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([0]);
+        self.read_ff(1);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([1]);
+        self.read_ff(3);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([2]);
+        self.read_ff(5);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([3]);
+        self.read_ff(7);
+        self.i2cDevice_FF_I2CMUX_0x71.disable();
+        self.i2cDevice_FF_I2CMUX_0x72.set_channels([0]);
+        self.read_ff(8);
+        self.i2cDevice_FF_I2CMUX_0x72.set_channels([1]);
+        self.read_ff(9);
+        self.i2cDevice_FF_I2CMUX_0x72.disable();
 
 
     # Initialize the I2C buses and devices.
@@ -304,13 +366,6 @@ class MdtTp_CM:
         self.i2cDevice_IC61_MCP9902.write_config_1(0x00)
         self.i2cDevice_IC62_MCP9902.write_config_0(0x00)
         self.i2cDevice_IC62_MCP9902.write_config_1(0x00)
-
-        # Set write protection for all power ICs.
-        self.i2cDevice_IC26_LTM4700.wp_level_1()
-        self.i2cDevice_IC27_LTM4700.wp_level_1()
-        self.i2cDevice_IC58_LTC2977.wp_level_1()
-        self.i2cDevice_IC59_LTC2977.wp_level_1()
-
 
         # Initialize the I2C I/O expander devices.
         self.i2c_io_exp_init()

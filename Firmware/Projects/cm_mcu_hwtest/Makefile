@@ -196,7 +196,7 @@ install: all ${COMPILER} ${COMPILER}/$(PROJECT).axf ${COMPILER}/$(PROJECT).bin
 
 sflash: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin $(SFLASH)
 # Offest 0x4000 for boot loader.
-	@$(SFLASH) -c /dev/ttyUL1 -p 0x4000 -b 115200 -d -s 252 $(COMPILER)/$(PROJECT).bin
+	@$(SFLASH) -c /dev/ttyUSB0 -p 0x4000 -b 115200 -d -s 252 $(COMPILER)/$(PROJECT).bin
 
 $(SFLASH):
 	@$(CD) $(shell $(DIRNAME) $(SFLASH)) && $(MAKE)
