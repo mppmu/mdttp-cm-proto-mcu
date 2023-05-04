@@ -60,53 +60,14 @@ done
 echo "Power up the Command Module."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c power_up
 
-echo "Program the clock synthesizer chip IC54 (SI5341A) to generate a fixed 40 MHz clock used as source for the 240 MHz reference clock for the FELIX IBERT."
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC54 config/clock/IBERT-Test/IC54_h74_FreeRun_O-40M-Registers.txt
+sleep 5
 
-echo "Program the clock synthesizer chip IC60 (Si5345A) for the sector logic (SL) communication."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC60 config/clock/IBERT-Test/IC60_h6B_IN2-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC60 config/clock/IBERT-Test/IC60_h6B_IN2-40M_O-320M_No-OOF-Registers.txt
+echo "Program the clock synthesizer chip IC10 (SI5345D) to generate a fixed 40 MHz clock from the 120MHz rec-clock from FELIX."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC10 config/clock/IBERT-TEST/IC10_120IN0_40_40_40_40_NA_NA_NA_NA_NA_FB-Registers.txt
 
-echo "Program the clock synthesizer chip IC61 (Si5342A) for the neighbor exchange (CM2CM) communication."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC61 config/clock/IBERT-Test/IC61_h68_IN2-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC61 config/clock/IBERT-Test/IC61_h68_IN2-40M_O-320M_No-OOF-Registers.txt
+echo "Program the clock synthesizer chip IC1 (Si5345D) to multiplex the 40MHz LHC clock from source IN1."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC1 config/clock/IBERT-TEST/IC1_40IN1_40_40_40_40_40_40_40_40_40_FB-Registers.txt
 
-echo "Program the clock synthesizer chip IC62 (Si5345A) for the KU15P-ZU11EG (C2C) communication."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC62 config/clock/IBERT-Test/IC62_h69_IN2-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC62 config/clock/IBERT-Test/IC62_h69_IN2-40M_O-320M_No-OOF-Registers.txt
+echo "Program the clock synthesizer chip IC3 (Si5345D) for FELIX communication."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC3 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
 
-echo "Program the clock synthesizer chip IC63 (Si5345A) for the SFP+ / legacy TTC communication."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC63 config/clock/IBERT-Test/IC63_h6A_IN2-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC63 config/clock/IBERT-Test/IC63_h6A_IN2-40M_O-320M_No-OOF-Registers.txt
-
-echo "Program the clock synthesizer chip IC82 (Si5344A) for the FELIX communication."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC82 config/clock/IBERT-Test/IC82_h6A_FreeRun_O-240M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC82 config/clock/IBERT-Test/IC82_h6A_IN0-40M_O-240M_No-OOF-Registers.txt
-
-echo "Set up the multiplexer for the recovered LHC clock to use the recovered LHC clock from the KU15P."
-# Hint:
-# Recovered LHC clock from the KU15P:  mux-clk-sel = 0x0?
-# Recovered LHC clock from the ZU11EG: mux-clk-sel = 0x1?
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c mcu_cmd_raw -p gpio mux-clk-sel 0x00
-
-#echo "Program the clock synthesizer chip IC56 (Si5345A) to generate a 40 MHz LHC clock from the 120 MHz recovered clock from the FELIX IBERT on its input 3."
-#echo "CAUTION: This is only valid for the CM demonstrator V1!"
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC56 config/clock/IBERT-Test/IC56_h68_IN3-120M_O-40M-Registers.txt
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC56 config/clock/IBERT-Test/IC56_h68_IN3-120M_O-40M_No-OOF-Registers.txt
-echo "Program the clock synthesizer chip IC56 (Si5345A) to generate a 40 MHz LHC clock from the 120 MHz recovered clock from the FELIX IBERT on its input 2."
-echo "CAUTION: This is only valid for the CM demonstrator V2!"
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC56 config/clock/IBERT-Test/IC56_h68_IN2-120M_O-40M-Registers.txt
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC56 config/clock/IBERT-Test/IC56_h68_IN2-120M_O-40M_No-OOF-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC56 config/clock/IBERT-Test/IC56_h68_IN2-120M_O-40M_No-OOF_ZDM-Registers.txt
-
-echo "Program the clock synthesizer chip IC83 (Si5342A) to generate a 40 MHz LHC clock from the 40 MHz LHC clock on its input 2."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC83 config/clock/IBERT-Test/IC83_h68_IN2-40M_O-40M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC83 config/clock/IBERT-Test/IC83_h68_IN2-40M_O-40M_No-OOF-Registers.txt
-
-echo "Program the clock synthesizer chip IC84 (Si5345A) for the front-end (FE) communication using the KU15P."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC84 config/clock/IBERT-Test/IC84_h69_IN0-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC84 config/clock/IBERT-Test/IC84_h69_IN0-40M_O-320M_No-OOF-Registers.txt
-
-echo "Program the clock synthesizer chip IC85 (Si5345A) for the front-end (FE) communication using the ZU11EG."
-#${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC85 config/clock/IBERT-Test/IC85_h6A_IN0-40M_O-320M-Registers.txt
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC85 config/clock/IBERT-Test/IC85_h6A_IN0-40M_O-320M_No-OOF-Registers.txt
