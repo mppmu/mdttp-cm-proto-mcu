@@ -62,12 +62,15 @@ ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c power_up
 
 sleep 5
 
-echo "Program the clock synthesizer chip IC10 (SI5345D) to generate a fixed 40 MHz clock from the 120MHz rec-clock from FELIX."
+echo "Program the clock synthesizer chip IC3 (Si5345A) for FELIX communication."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC3 config/clock/IBERT-TEST/IC2,3,6,7_INT_240-Registers.txt
+
+echo "Program the clock synthesizer chip IC10 (SI5345A) to generate a fixed 40 MHz clock from the 120MHz rec-clock from FELIX."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC10 config/clock/IBERT-TEST/IC10_120IN0_40_40_40_40_NA_NA_NA_NA_NA_FB-Registers.txt
 
-echo "Program the clock synthesizer chip IC1 (Si5345D) to multiplex the 40MHz LHC clock from source IN1."
+echo "Program the clock synthesizer chip IC1 (Si5345A) to multiplex the 40MHz LHC clock from source IN1."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC1 config/clock/IBERT-TEST/IC1_40IN1_40_40_40_40_40_40_40_40_40_FB-Registers.txt
 
-echo "Program the clock synthesizer chip IC3 (Si5345D) for FELIX communication."
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC3 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
+echo "Program the clock synthesizer chip IC2 (Si5345A) for FELIX communication."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC2 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
 
