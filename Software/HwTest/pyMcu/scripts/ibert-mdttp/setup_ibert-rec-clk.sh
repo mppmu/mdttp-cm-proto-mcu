@@ -30,7 +30,7 @@ cd ../..
 
 
 PY_MCU_CM="./pyMcuCm.py"
-SERIAL_DEVICE="/dev/ttyUSB0"
+SERIAL_DEVICE="/dev/ttyUSB1"
 VERBOSITY="0"
 
 
@@ -73,4 +73,7 @@ ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC1 config/cloc
 
 echo "Program the clock synthesizer chip IC2 (Si5345A) for FELIX communication."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC2 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
+
+echo "Program the clock synthesizer chip IC2 (Si5345A) for FELIX communication."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC6 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
 
