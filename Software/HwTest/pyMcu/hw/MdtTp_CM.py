@@ -1234,3 +1234,22 @@ class MdtTp_CM:
         for signal in clkResetSignals:
             self.i2c_io_exp_set_output(signal, 1)
 
+    def i2c_io_exp_status_clk(self):
+        clkstatusSignals = {
+            "IC1":"FF_CLK_LOLb",
+            "IC2":"CLK_FF_024_0_LOLb",
+            "IC3":"CLK_FF_024_1_LOLb",
+            "IC4":"CLK_FF_68_0_LOLb",
+            "IC5":"CLK_FF_68_1_LOLb",
+            "IC6":"CLK_FF_135_0_LOLb",
+            "IC7":"CLK_FF_135_1_LOLb",
+            "IC8":"CLK_FF_79_0_LOLb",
+            "IC9":"CLK_FF_79_1_LOLb",
+            "IC10":"CLK_FF_TD_0_LOLb",
+            "IC12":"SM_LOLb"}
+        
+        # read LOL for all clock chips
+        for ic in clkstatusSignals.keys():
+            print(ic)
+            self.i2c_io_exp_get_input(clkstatusSignals(ic))
+
