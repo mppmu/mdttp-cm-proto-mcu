@@ -50,7 +50,7 @@ if __name__ == "__main__":
                                  'i2c_reset', 'i2c_detect', "i2c_mux_reset",
                                  'i2c_io_exp_init', 'i2c_io_exp_status', 'i2c_io_exp_get_input', 'i2c_io_exp_get_output', 'i2c_io_exp_set_output',
                                  'pm_status', 'pm_status_raw',
-                                 'clk_setup', 'clk_reset', 'ff_status'],
+                                 'clk_setup', 'clk_reset', 'clk_status', 'ff_status'],
                         dest='command', default='status',
                         help='Command to execute on the CM.')
     parser.add_argument('-d', '--device', action='store', type=str,
@@ -169,6 +169,8 @@ if __name__ == "__main__":
             mdtTp_CM.clk_prog_all()
     elif command == "clk_reset":
         mdtTp_CM.i2c_io_exp_reset_clk()
+    elif command == "clk_status":
+        mdtTp_CM.i2c_io_exp_status_clk()
     elif command == "ff_status":
         mdtTp_CM.read_ff_status()
     else:
