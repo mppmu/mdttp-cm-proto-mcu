@@ -13,7 +13,7 @@
 import os
 import McuI2C
 import I2CDevice
-
+import time
 
 
 class I2C_Si53xx:
@@ -75,7 +75,13 @@ class I2C_Si53xx:
                     lineCommentRemoved = lineStripped[0:lineStripped.find(self.fileRegMapMarkComment)].strip(' \t')
                 else:
                     lineCommentRemoved = lineStripped
-                # Get list of elements.
+                # if line includes word Delay in pos 2, then delay
+                if lineStripped.find("Delay") == 2:
+                    if self.debugLevel >= 3:
+                        print(self.prefixDebugDevice + "Delay found, delaying 300ms")
+                    time.sleep(0.3)
+                    continue
+                    # Get list of elements.
                 lineElements = list(filter(None, lineCommentRemoved.split(",")))
                 lineElements = list(el.strip(' \t\n\r') for el in lineElements)
                 # Ignore lines without data.

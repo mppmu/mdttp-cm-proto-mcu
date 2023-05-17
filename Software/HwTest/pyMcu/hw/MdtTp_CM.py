@@ -1251,5 +1251,5 @@ class MdtTp_CM:
         # read LOL for all clock chips
         for ic in clkstatusSignals.keys():
             print(ic)
-            self.i2c_io_exp_get_input(clkstatusSignals(ic))
+            self.i2c_io_exp_get_input(clkstatusSignals[ic])
 
