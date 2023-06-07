@@ -196,7 +196,22 @@ class McuSerial:
         try:
             if self.debugLevel >= 2:
                 print(self.prefixDebug + "Sending MCU command: " + cmd)
-            self.ser.write((cmd + "\r").encode('utf-8'))
+#            self.ser.write((cmd + "\r").encode('utf-8'))
+#            self.ser.write((cmd + "\r").encode('utf-8'))
+#            self.ser.flush()
+            # Work-around for the communication problem seen between the SM SoM and the CM MCU:
+            # - Send the carriage return separately from the command with an
+            #   additional write command and use a flush command after each
+            #   write command.
+            # - This method was empirically found and tested on 03 Apr 2023. It
+            #   improves the reliability of the communication between the SM
+            #   SoM and the CM MCU a lot, but not to 100%.
+            # - The root cause of the problem is unclear.
+            # - This work-around is not necessary when using the front-panel
+            #   UART with a PC.
+            self.ser.write(cmd.encode('utf-8'))
+            self.ser.flush()
+            self.ser.write("\r".encode('utf-8'))
             self.ser.flush()
             self.accessWrite += 1
             self.bytesWritten += len(cmd) + 1
@@ -212,7 +227,8 @@ class McuSerial:
             serTimeoutBackup = self.ser.timeout
             # Temporarily set a longer timeout.
             self.ser.timeout = 0.05
-            while line == "":
+#            while line == "":
+            while line.find('\n') < 0:
                 cnt += 1
                 line = self.ser.readline().decode('utf-8')
                 self.bytesRead += len(line)
@@ -228,6 +244,8 @@ class McuSerial:
                 if line == self.mcuCmdPrompt:
                     return 0
                 if cnt > self.mcuReadLineMax:
+                    self.errorCount += 1
+                    print(self.prefixError + "Incomplete response received from the MCU!")
                     return 1
                 if line != "":
                     self.mcuResponse += line.rstrip('\n\r')
