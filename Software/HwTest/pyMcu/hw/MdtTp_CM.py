@@ -319,10 +319,10 @@ class MdtTp_CM:
     def read_ff(self, ff):
         iret, temp = self.i2cDevice_FF_tx.read_temperature();
         iret, vcc = self.i2cDevice_FF_tx.read_vcc();
-        print("FF%d TX: %d °C %.2f V" % (ff, temp, vcc));
+        print("FF%d TX: %d debC %.2f V" % (ff, temp, vcc));
         iret, temp = self.i2cDevice_FF_rx.read_temperature();
         iret, vcc = self.i2cDevice_FF_rx.read_vcc();
-        print("FF%d RX: %d °C %.2f V" % (ff,temp, vcc));
+        print("FF%d RX: %d degC %.2f V" % (ff,temp, vcc));
     def read_ff_status(self):
         self.i2cDevice_FF_I2CMUX_0x70.disable();
         self.i2cDevice_FF_I2CMUX_0x71.disable();
