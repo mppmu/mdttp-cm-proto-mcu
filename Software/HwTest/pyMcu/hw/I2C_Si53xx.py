@@ -128,15 +128,14 @@ class I2C_Si53xx:
     # Return the name of a register address.
     def adr_to_name(self, regAdr):
         regName = "*other/unknown*"
-        if self.deviceType == self.deviceTypeRX:
-            if regAdr == 0xC:
-                regName = "Status regs"
-            elif regAdr == 0xD:
-                regName = "Status reg: LOSIN"
-            elif regAdr == 0x11:
-                regName = "Sticky Status regs _FLG"
-            elif regAdr == 0x12:
-                regName = "Sticky Status reg: LOSIN_FLG"
+        if regAdr == 0xC:
+            regName = "Status regs"
+        elif regAdr == 0xD:
+            regName = "Status reg: LOSIN"
+        elif regAdr == 0x11:
+            regName = "Sticky Status regs _FLG"
+        elif regAdr == 0x12:
+            regName = "Sticky Status reg: LOSIN_FLG"
         return regName
     
     # Read a register value.
@@ -193,12 +192,12 @@ class I2C_Si53xx:
             print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
             return -1, "ERROR"
         string = ""
-        string += " " +(stats & self.SYSINCAL_b)==self.SYSINCAL_b
-        string += " " +(stats & self.LOSXAXB_b)==self.LOSXAXB_b
-        string += " " +(stats & self.LOSREF_b)==self.LOSREF_b
-        string += " " +(stats & self.LOL_b)==self.LOL_b
-        string += " " +(stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b
-        string += " " + LOSIN
+        string += " " + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += " " + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += " " + str((stats & self.LOSREF_b)==self.LOSREF_b)
+        string += " " + str((stats & self.LOL_b)==self.LOL_b)
+        string += " " + str((stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
+        string += " " + str(LOSIN)
         return 0, string
         
     def print_sticky_status_str(self):
@@ -209,9 +208,9 @@ class I2C_Si53xx:
             print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
             return -1, "ERROR"
         string = ""
-        string += " " +(s_stats & self.SYSINCAL_b)==self.SYSINCAL_b
-        string += " " +(s_stats & self.LOSXAXB_b)==self.LOSXAXB_b
-        string += " " +(s_stats & self.LOSREF_b)==self.LOSREF_b
-        string += " " +(s_stats & self.LOL_b)==self.LOL_b
-        string += " " +(s_stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b
-        string += " " + s_LOSIN
+        string += " " + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += " " + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += " " + str((s_stats & self.LOSREF_b)==self.LOSREF_b)
+        string += " " + str((s_stats & self.LOL_b)==self.LOL_b)
+        string += " " + str((s_stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
+        string += " " + str(s_LOSIN)
