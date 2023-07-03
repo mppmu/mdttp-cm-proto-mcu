@@ -51,7 +51,13 @@ class I2C_Si53xx:
         self.prefixErrorDevice = self.prefixError + self.deviceName + ": "
 
 
-
+    def check_adr(self, regAdr):
+        if regAdr < self.hwAdrMin or regAdr > self.hwAdrMax:
+            print(self.prefixErrorDevice + "Data word register value {0:d} out of valid range {1:d}..{2:d}!".\
+                format(regAdr, self.hwAdrMin, self.hwAdrMax))
+            return -1
+        return 0
+    
     # Load the configuration of an Si53xx IC from a register map file produced
     # with the ClockBuilder Pro software.
     def config_file(self, fileRegMapName):
