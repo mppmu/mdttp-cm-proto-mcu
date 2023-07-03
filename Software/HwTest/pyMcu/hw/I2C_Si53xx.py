@@ -192,12 +192,12 @@ class I2C_Si53xx:
             print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
             return -1, "ERROR"
         string = ""
-        string += " " + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
-        string += " " + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += " " + str((stats & self.LOSREF_b)==self.LOSREF_b)
-        string += " " + str((stats & self.LOL_b)==self.LOL_b)
-        string += " " + str((stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
-        string += " " + str(LOSIN)
+        string += "\t" + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += "\t" + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += "\t" + str((stats & self.LOSREF_b)==self.LOSREF_b)
+        string += "\t" + str((stats & self.LOL_b)==self.LOL_b)
+        string += "\t" + str((stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
+        string += "\t\t" + str(LOSIN)
         return 0, string
         
     def print_sticky_status_str(self):
