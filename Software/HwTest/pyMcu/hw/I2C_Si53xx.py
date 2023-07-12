@@ -192,7 +192,7 @@ class I2C_Si53xx:
         ret1, s_stats = self.read_reg(0x11)
         ret2, s_LOSIN = self.read_reg(0x12)
         ret3, s_LOL = self.read_reg(0x13)
-        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, LOL & self.LOL_b
+        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, s_LOL & self.LOL_b
     
     def print_status_str(self):
         ret, stats, LOSIN, LOL = self.read_status_regs()
@@ -209,7 +209,7 @@ class I2C_Si53xx:
         return 0, string
         
     def print_sticky_status_str(self):
-        ret, s_stats, s_LOSIN = self.read_sticky_status_regs()
+        ret, s_stats, s_LOSIN, LOL= self.read_sticky_status_regs()
         if ret:
             print(self.prefixErrorDevice + "Error reading sticky status!", end='')
             self.i2cDevice.print_details()
