@@ -58,7 +58,7 @@ done
 
 # Power up the Command Module.
 echo "Power up the Command Module."
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c power_up
+BUTool.exe -a --cmd cmpwrup --cmd q
 
 sleep 5
 

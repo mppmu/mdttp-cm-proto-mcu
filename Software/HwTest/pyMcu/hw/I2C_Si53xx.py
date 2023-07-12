@@ -33,11 +33,15 @@ class I2C_Si53xx:
     hwAdrMax            = 0x12
     
     #definition
+    # in reg 0x000C
     SYSINCAL_b = 0x1
     LOSXAXB_b = 0x2
-    LOSREF_b = 0x4
-    LOL_b = 0x8
-    SMBUS_TIMEOUT_b = 0x20
+#    LOSREF_b = 0x4
+    # in reg 0x000E
+    LOL_b = 0x1
+
+    #SMBUS_TIMEOUT_b = 0x20
+    # in reg 0x000D
     LOSIN_b = 0xF #Loss of Signal for the FB_IN, IN2, IN1, IN0 inputs
 
     # Initialize the I2C device.
@@ -129,13 +133,17 @@ class I2C_Si53xx:
     def adr_to_name(self, regAdr):
         regName = "*other/unknown*"
         if regAdr == 0xC:
-            regName = "Status regs"
+            regName = "Status regs 0xC"
         elif regAdr == 0xD:
             regName = "Status reg: LOSIN"
+        elif regAdr == 0xE:
+            regName = "Status reg: LOL"
         elif regAdr == 0x11:
             regName = "Sticky Status regs _FLG"
         elif regAdr == 0x12:
             regName = "Sticky Status reg: LOSIN_FLG"
+        elif regAdr == 0x13:
+            regName = "Sticky Status reg: LOL_FLG"
         return regName
     
     # Read a register value.
@@ -175,17 +183,19 @@ class I2C_Si53xx:
         return 0, value
 
     def read_status_regs(self):
-        ret, stats = self.read_reg(0xC)
-        ret, LOSIN = self.read_reg(0xD)
-        return ret, stats & 0x2F, LOSIN & 0x0F
+        ret1, stats = self.read_reg(0xC)
+        ret2, LOSIN = self.read_reg(0xD)
+        ret3, LOL = self.read_reg(0xE)
+        return ret1+ret2+ret3, stats & 0x2F, LOSIN & 0x0F, LOL & 0x01
     
     def read_sticky_status_regs(self):
-        ret, s_stats = self.read_reg(0x11)
-        ret, s_LOSIN = self.read_reg(0x12)
-        return ret, s_stats & 0x2F, s_LOSIN & 0x0F
+        ret1, s_stats = self.read_reg(0x11)
+        ret2, s_LOSIN = self.read_reg(0x12)
+        ret3, s_LOL = self.read_reg(0x13)
+        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, LOL & 0x01
     
     def print_status_str(self):
-        ret, stats, LOSIN = self.read_status_regs()
+        ret, stats, LOSIN, LOL = self.read_status_regs()
         if ret:
             print(self.prefixErrorDevice + "Error reading status!", end='')
             self.i2cDevice.print_details()
@@ -194,9 +204,7 @@ class I2C_Si53xx:
         string = ""
         string += "\t" + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
         string += "\t" + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += "\t" + str((stats & self.LOSREF_b)==self.LOSREF_b)
-        string += "\t" + str((stats & self.LOL_b)==self.LOL_b)
-        string += "\t" + str((stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
+        string += "\t" + str((LOL & self.LOL_b)==self.LOL_b)
         string += "\t\t" + str(LOSIN)
         return 0, string
         

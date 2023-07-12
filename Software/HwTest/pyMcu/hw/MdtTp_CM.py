@@ -817,7 +817,7 @@ class MdtTp_CM:
         self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
 
-    # Program a single Silicon Labs clock IC from a register map file.
+    # get status bits for a single clock chip.
     def clk_print_status(self, i2cDevice):
         i2cDevice.debugLevel = self.debugLevel
         muxChannel = i2cDevice.muxChannel
@@ -837,7 +837,7 @@ class MdtTp_CM:
     def clk_print_status_all(self):
         if self.debugLevel >= 1:
             print(self.prefixDebug + "printing status for all clock chips.")
-        print("status are:                                        \tSYSINCAL LOSXAXB LOSREF LOL \tSMBUS_TIMEOUT LOSIN")
+        print("status are:                                        \tSYSINCAL LOSXAXB LOL \tLOSIN")
         self.clk_print_status(self.i2cDevice_IC1_Si5345A)
         self.clk_print_status(self.i2cDevice_IC2_Si5345A)
         self.clk_print_status(self.i2cDevice_IC3_Si5345A)
