@@ -30,7 +30,7 @@ cd ../..
 
 
 PY_MCU_CM="./pyMcuCm.py"
-SERIAL_DEVICE="/dev/ttyUSB1"
+SERIAL_DEVICE="/dev/ttyUL1"
 VERBOSITY="0"
 
 

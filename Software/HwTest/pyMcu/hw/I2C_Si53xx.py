@@ -38,7 +38,7 @@ class I2C_Si53xx:
     LOSXAXB_b = 0x2
 #    LOSREF_b = 0x4
     # in reg 0x000E
-    LOL_b = 0x1
+    LOL_b = 0x2
 
     #SMBUS_TIMEOUT_b = 0x20
     # in reg 0x000D
@@ -186,13 +186,13 @@ class I2C_Si53xx:
         ret1, stats = self.read_reg(0xC)
         ret2, LOSIN = self.read_reg(0xD)
         ret3, LOL = self.read_reg(0xE)
-        return ret1+ret2+ret3, stats & 0x2F, LOSIN & 0x0F, LOL & 0x01
+        return ret1+ret2+ret3, stats & 0x2F, LOSIN & 0x0F, LOL & self.LOL_b
     
     def read_sticky_status_regs(self):
         ret1, s_stats = self.read_reg(0x11)
         ret2, s_LOSIN = self.read_reg(0x12)
         ret3, s_LOL = self.read_reg(0x13)
-        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, LOL & 0x01
+        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, LOL & self.LOL_b
     
     def print_status_str(self):
         ret, stats, LOSIN, LOL = self.read_status_regs()
@@ -204,7 +204,7 @@ class I2C_Si53xx:
         string = ""
         string += "\t" + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
         string += "\t" + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += "\t" + str((LOL & self.LOL_b)==self.LOL_b)
+        string += "\t" + str(LOL == self.LOL_b)
         string += "\t\t" + str(LOSIN)
         return 0, string
         
@@ -218,7 +218,5 @@ class I2C_Si53xx:
         string = ""
         string += " " + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
         string += " " + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += " " + str((s_stats & self.LOSREF_b)==self.LOSREF_b)
-        string += " " + str((s_stats & self.LOL_b)==self.LOL_b)
-        string += " " + str((s_stats & self.SMBUS_TIMEOUT_b)==self.SMBUS_TIMEOUT_b)
+        string += " " + str(LOL == self.LOL_b)
         string += " " + str(s_LOSIN)
