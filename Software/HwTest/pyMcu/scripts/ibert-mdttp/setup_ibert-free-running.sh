@@ -73,3 +73,7 @@ ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC3 config/cloc
 
 echo "Program the clock synthesizer chip IC6 (Si5345A) for FELIX communication."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC6 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_320-Registers.txt
+
+echo "Program the clock synthesizer chip IC12 (Si5345A) for C2C communication."
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC12 config/clock/IBERT-TEST/IC12_INT_200_200_NA-Registers.txt
+
