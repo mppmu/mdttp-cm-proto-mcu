@@ -29,7 +29,20 @@ class I2C_Si53xx:
 
     # Hardware parameters.
     fileRegMapMarkComment = "#"
+    hwAdrMin            = 0x0C
+    hwAdrMax            = 0x12
+    
+    #definition
+    # in reg 0x000C
+    SYSINCAL_b = 0x1
+    LOSXAXB_b = 0x2
+#    LOSREF_b = 0x4
+    # in reg 0x000E
+    LOL_b = 0x2
 
+    #SMBUS_TIMEOUT_b = 0x20
+    # in reg 0x000D
+    LOSIN_b = 0xF #Loss of Signal for the FB_IN, IN2, IN1, IN0 inputs
 
     # Initialize the I2C device.
     def __init__(self, mcuI2C, slaveAddr, deviceName):
@@ -42,7 +55,13 @@ class I2C_Si53xx:
         self.prefixErrorDevice = self.prefixError + self.deviceName + ": "
 
 
-
+    def check_adr(self, regAdr):
+        if regAdr < self.hwAdrMin or regAdr > self.hwAdrMax:
+            print(self.prefixErrorDevice + "Data word register value {0:d} out of valid range {1:d}..{2:d}!".\
+                format(regAdr, self.hwAdrMin, self.hwAdrMax))
+            return -1
+        return 0
+    
     # Load the configuration of an Si53xx IC from a register map file produced
     # with the ClockBuilder Pro software.
     def config_file(self, fileRegMapName):
@@ -110,3 +129,94 @@ class I2C_Si53xx:
                     return -1
         return 0
 
+    # Return the name of a register address.
+    def adr_to_name(self, regAdr):
+        regName = "*other/unknown*"
+        if regAdr == 0xC:
+            regName = "Status regs 0xC"
+        elif regAdr == 0xD:
+            regName = "Status reg: LOSIN"
+        elif regAdr == 0xE:
+            regName = "Status reg: LOL"
+        elif regAdr == 0x11:
+            regName = "Sticky Status regs _FLG"
+        elif regAdr == 0x12:
+            regName = "Sticky Status reg: LOSIN_FLG"
+        elif regAdr == 0x13:
+            regName = "Sticky Status reg: LOL_FLG"
+        return regName
+    
+    # Read a register value.
+    def read_reg(self, regAdr):
+        self.i2cDevice.debugLevel = self.debugLevel
+        if self.check_adr(regAdr):
+            return -1, 0xff
+        regName = self.adr_to_name(regAdr)
+        # Debug info.
+        if self.debugLevel >= 2:
+            print(self.prefixDebugDevice + "Reading the value of the \"{0:s}\", register address 0x{1:02x}.".format(regName, regAdr), end='')
+            self.i2cDevice.print_details()
+        # Set the page register to 0x00
+        ret = self.i2cDevice.write([0x01, 0x00])        # status to readback only on pgae 0x00
+        
+        dataWr = []
+        dataWr.append(regAdr)
+        # Write command and read data with repeated start.
+        ret, dataRd = self.i2cDevice.write_read(dataWr, 1)
+        # Evaluate response.
+        if ret:
+            print(self.prefixErrorDevice + "Error reading the value of the \"{0:s}\", register address 0x{1:02x}!".format(regName, regAdr), end='')
+            self.i2cDevice.print_details()
+            print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
+            return -1, 0xff
+        if len(dataRd) != 1:
+            print(self.prefixErrorDevice + "Error reading the value of the \"{0:s}\", register address 0x{1:02x}: Incorrect amount of data received!".\
+                format(regName, regAdr), end='')
+            self.i2cDevice.print_details()
+            return -1, 0xff
+        # Calculate the value.
+        value = dataRd[0] & 0xff
+        # Debug info.
+        if self.debugLevel >= 2:
+            print(self.prefixDebugDevice + "Read the value of the \"{0:s}\", register address 0x{1:02x}: 0x{2:02x}.".format(regName, regAdr, value), end='')
+            self.i2cDevice.print_details()
+        return 0, value
+
+    def read_status_regs(self):
+        ret1, stats = self.read_reg(0xC)
+        ret2, LOSIN = self.read_reg(0xD)
+        ret3, LOL = self.read_reg(0xE)
+        return ret1+ret2+ret3, stats & 0x2F, LOSIN & 0x0F, LOL & self.LOL_b
+    
+    def read_sticky_status_regs(self):
+        ret1, s_stats = self.read_reg(0x11)
+        ret2, s_LOSIN = self.read_reg(0x12)
+        ret3, s_LOL = self.read_reg(0x13)
+        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, s_LOL & self.LOL_b
+    
+    def print_status_str(self):
+        ret, stats, LOSIN, LOL = self.read_status_regs()
+        if ret:
+            print(self.prefixErrorDevice + "Error reading status!", end='')
+            self.i2cDevice.print_details()
+            print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
+            return -1, "ERROR"
+        string = ""
+        string += "\t" + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += "\t" + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += "\t" + str(LOL == self.LOL_b)
+        string += "\t\t" + str(LOSIN)
+        return 0, string
+        
+    def print_sticky_status_str(self):
+        ret, s_stats, s_LOSIN, LOL= self.read_sticky_status_regs()
+        if ret:
+            print(self.prefixErrorDevice + "Error reading sticky status!", end='')
+            self.i2cDevice.print_details()
+            print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
+            return -1, "ERROR"
+        string = ""
+        string += " " + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += " " + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += " " + str(LOL == self.LOL_b)
+        string += " " + str(s_LOSIN)

@@ -30,7 +30,7 @@ cd ../..
 
 
 PY_MCU_CM="./pyMcuCm.py"
-SERIAL_DEVICE="/dev/ttyUSB1"
+SERIAL_DEVICE="/dev/ttyUL1"
 VERBOSITY="0"
 
 
@@ -58,7 +58,7 @@ done
 
 # Power up the Command Module.
 echo "Power up the Command Module."
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c power_up
+BUTool.exe -a --cmd cmpwrup --cmd q
 
 sleep 5
 

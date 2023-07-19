@@ -817,7 +817,38 @@ class MdtTp_CM:
         self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
 
+    # get status bits for a single clock chip.
+    def clk_print_status(self, i2cDevice):
+        i2cDevice.debugLevel = self.debugLevel
+        muxChannel = i2cDevice.muxChannel
+        if self.debugLevel >= 2:
+            print(self.prefixDebug + "Setting I2C mux for clock chips {0:s} to channel {1:d}.".format(self.i2cDevice_IC36_PCA9545APW.deviceName, muxChannel))
+        self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        i2cDevice.debugLevel = self.debugLevel
+        ret, status = i2cDevice.print_status_str()
+        if ret:
+            print("Failed reading status of {0:s} on I2C port {1:d} ".\
+            format(i2cDevice.deviceName, i2cDevice.mcuI2C.port))
+        else:
+            print("reading status of {0:s} on I2C port {1:d} is {2:s}".\
+            format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, status))
 
+    def clk_print_status_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "printing status for all clock chips.")
+        print("status are:                                        \tSYSINCAL LOSXAXB LOL \tLOSIN")
+        self.clk_print_status(self.i2cDevice_IC1_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC2_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC3_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC4_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC5_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC6_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC7_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC8_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC9_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC10_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC12_Si5345A)
 
     # ===============================================================
     # I2C I/O expander devices.
