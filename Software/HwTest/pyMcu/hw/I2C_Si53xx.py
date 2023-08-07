@@ -209,7 +209,7 @@ class I2C_Si53xx:
         return 0, string
         
     def print_sticky_status_str(self):
-        ret, s_stats, s_LOSIN, LOL= self.read_sticky_status_regs()
+        ret, s_stats, s_LOSIN, s_LOL= self.read_sticky_status_regs()
         if ret:
             print(self.prefixErrorDevice + "Error reading sticky status!", end='')
             self.i2cDevice.print_details()
@@ -218,5 +218,6 @@ class I2C_Si53xx:
         string = ""
         string += " " + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
         string += " " + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += " " + str(LOL == self.LOL_b)
+        string += " " + str(s_LOL == self.LOL_b)
         string += " " + str(s_LOSIN)
+        return 0, string
