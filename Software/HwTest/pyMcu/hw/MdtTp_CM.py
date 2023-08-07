@@ -786,7 +786,7 @@ class MdtTp_CM:
         if ret:
             print (self.prefixError + "Error reading initial frequency")
             return -1
-        print ("Initial frequency is {3:f}".format(freq))
+        print ("Initial frequency is {}".format(freq))
         i2cDevice.prog()
         if ret:
             print (self.prefixError + "Error writing configuration")
@@ -795,7 +795,7 @@ class MdtTp_CM:
         if ret:
             print (self.prefixError + "Error reading initial frequency")
             return -1
-        print ("New frequency is {3:f}".format(freq))
+        print ("New frequency is {}".format(freq))
         
     # Program a single Silicon Labs clock IC from a register map file by its name.
     def clk_prog_device_by_name(self, clkDevName, regMapFile):
@@ -822,7 +822,8 @@ class MdtTp_CM:
             for dev in clkDeviceList:
                 print(dev.deviceName.split(' ')[0] + " ", end='')
             return -1
-        if "IC11" == clkDevice.deviceName.split(' ')[0].lower():
+        print ("name is " + clkDevice.deviceName.split(' ')[0])
+        if "IC11" == clkDevice.deviceName.split(' ')[0]:
             return self.clk_prog_ic11(clkDevice)
         self.clk_prog_device_file(clkDevice)
         return 0

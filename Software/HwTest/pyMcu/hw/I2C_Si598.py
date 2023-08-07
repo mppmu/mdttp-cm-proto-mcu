@@ -23,6 +23,7 @@ class I2C_Si598:
 
     # Debug configuration.
     debugLevel = 0                 # Debug verbosity.
+    _hs_div_table = [4, 5, 6, 7, -1, 9 ,-1, 11]
     instructions = """
     These are the instructions to determine the values of the registers to write and set a new frequency
     These are computed once, and no need to update them unless you require a frequency other than 240MHz
@@ -113,19 +114,27 @@ class I2C_Si598:
             self.i2cDevice.print_details()
             return -1, 0xff
         # Calculate the value.
-        r7=int(_data[0],base=16)
-        r8=int(_data[1],base=16)
-        r9=int(_data[2],base=16)
-        r10=int(_data[3],base=16)
-        r11=int(_data[4],base=16)
-        r12=int(_data[5],base=16)
+        #        r7=int(_data[0],base=16)
+        #        r8=int(_data[1],base=16)
+        #        r9=int(_data[2],base=16)
+        #        r10=int(_data[3],base=16)
+        #        r11=int(_data[4],base=16)
+        #        r12=int(_data[5],base=16)
+        r7=_data[0]
+        r8=_data[1]
+        r9=_data[2]
+        r10=_data[3]
+        r11=_data[4]
+        r12=_data[5]
         n1=((r7&0x1f)<<2)+(r8>>6) + 1 # = 6 #check the datasheet
-        # hs_div_table=r7>>5 # = 5
-        hs_div = 9 #check the datasheet table correspondance: 9 corresponds to hs_div_table = 5
+        hs_div_table=r7>>5 # = 5
+        hs_div = self._hs_div_table[hs_div_table] #check the datasheet table correspondance: 9 corresponds to hs_div_table = 5
         rfreq=(((r8&0x3f)<<32) + (r9<<24) + (r10<<16) + (r11<<8) + r12 )/ 2**28
         f0=90 #fixed by part number
-        # fxtal = ( f0 * hs_div * n1 ) / rfreq
-        return 0, rfreq
+        # In principle fxtal should be always the same value, fixed by part number
+        fxtal = 39.17 # ( f0 * hs_div * n1 ) / rfreq 
+        freq=fxtal * rfreq / hs_div / n1
+        return 0, freq
     
     def prog(self):
         if self.debugLevel >= 2:
