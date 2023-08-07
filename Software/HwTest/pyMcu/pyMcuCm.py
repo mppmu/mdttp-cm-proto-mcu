@@ -165,7 +165,7 @@ if __name__ == "__main__":
                 print(prefixError, "E.g.: -p IC1 config/clock/Pro_Design/IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
             else:
                 if commandParameters[0] == "IC11":
-                    mdtTp_CM.clk_prog_ic11()
+                    mdtTp_CM.clk_prog_device_by_name("IC11","none")
                 else: 
                     mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
         else:

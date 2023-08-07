@@ -823,7 +823,7 @@ class MdtTp_CM:
                 print(dev.deviceName.split(' ')[0] + " ", end='')
             return -1
         if "IC11" == clkDevice.deviceName.split(' ')[0].lower():
-            return self.clk_prog_ic11()
+            return self.clk_prog_ic11(clkDevice)
         self.clk_prog_device_file(clkDevice)
         return 0
 
