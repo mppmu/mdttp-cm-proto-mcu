@@ -821,7 +821,6 @@ class MdtTp_CM:
             print(self.prefixError + "Valid clock devices: ", end='')
             for dev in clkDeviceList:
                 print(dev.deviceName.split(' ')[0] + " ", end='')
-            print()
             return -1
         if "IC11" == clkDevice.deviceName.split(' ')[0].lower():
             return self.clk_prog_ic11()
