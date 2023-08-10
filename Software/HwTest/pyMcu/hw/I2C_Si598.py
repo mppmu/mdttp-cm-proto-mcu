@@ -136,7 +136,7 @@ class I2C_Si598:
         freq=fxtal * rfreq / hs_div / n1
         return 0, freq
     
-    def prog(self):
+    def prog(self, freq):
         if self.debugLevel >= 2:
             print(self.prefixDebugDevice + "Writing configuration for ic11, 240MHz", end='')
 
@@ -148,7 +148,13 @@ class I2C_Si598:
             return -1            
         
         # 7) Write the new frequency configuration (RFREQ, HS_DIV, and N1)
-        ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x6C, 0xC0, 0xAB, 0x7E])
+        if freq == "240":
+            ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x6C, 0xC0, 0xAB, 0x7E])
+        elif freq == "240.474":
+            ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x71, 0x03, 0x1F, 0xC0])
+        else :
+            print(self.prefixErrorDevice + "Error frequency not recognized, user 240 or 240.474")
+            return -1
         if ret:
             print(self.prefixErrorDevice + "Error Writing configuration to clock chip")
             return -1

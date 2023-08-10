@@ -787,7 +787,7 @@ class MdtTp_CM:
             print (self.prefixError + "Error reading initial frequency")
             return -1
         print ("Initial frequency is {}".format(freq))
-        i2cDevice.prog()
+        i2cDevice.prog(i2cDevice.clk_freq)
         if ret:
             print (self.prefixError + "Error writing configuration")
             return -1
@@ -824,6 +824,7 @@ class MdtTp_CM:
             return -1
         print ("name is " + clkDevice.deviceName.split(' ')[0])
         if "IC11" == clkDevice.deviceName.split(' ')[0]:
+            clkDevice.clk_freq = regMapFile
             return self.clk_prog_ic11(clkDevice)
         self.clk_prog_device_file(clkDevice)
         return 0

@@ -160,12 +160,13 @@ if __name__ == "__main__":
         mdtTp_CM.power_module_status_raw()
     elif command == "clk_setup":
         if commandParameters:
-            if len(commandParameters) != 2 and commandParameters[0] != "IC11":
-                print(prefixError, "Please specify the clock IC number and the register map file.")
+            if len(commandParameters) != 2 :
+                print(prefixError, "Please specify the clock IC number and the register map file (or freq for IC11).")
                 print(prefixError, "E.g.: -p IC1 config/clock/Pro_Design/IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
+                print(prefixError, "E.g.: -p IC11 240.474")
             else:
                 if commandParameters[0] == "IC11":
-                    mdtTp_CM.clk_prog_device_by_name("IC11","none")
+                    mdtTp_CM.clk_prog_device_by_name("IC11","240")
                 else: 
                     mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
         else:
