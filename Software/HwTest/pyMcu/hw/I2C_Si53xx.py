@@ -43,7 +43,7 @@ class I2C_Si53xx:
     #SMBUS_TIMEOUT_b = 0x20
     # in reg 0x000D
     LOSIN_b = 0xF #Loss of Signal for the FB_IN, IN2, IN1, IN0 inputs
-
+    OOF_b   = 0xF0
     # Initialize the I2C device.
     def __init__(self, mcuI2C, slaveAddr, deviceName):
         self.mcuI2C = mcuI2C
@@ -135,13 +135,13 @@ class I2C_Si53xx:
         if regAdr == 0xC:
             regName = "Status regs 0xC"
         elif regAdr == 0xD:
-            regName = "Status reg: LOSIN"
+            regName = "Status reg: OOF & LOSIN"
         elif regAdr == 0xE:
             regName = "Status reg: LOL"
         elif regAdr == 0x11:
             regName = "Sticky Status regs _FLG"
         elif regAdr == 0x12:
-            regName = "Sticky Status reg: LOSIN_FLG"
+            regName = "Sticky Status reg: OOF_FLG & LOSIN_FLG"
         elif regAdr == 0x13:
             regName = "Sticky Status reg: LOL_FLG"
         return regName
@@ -184,18 +184,18 @@ class I2C_Si53xx:
 
     def read_status_regs(self):
         ret1, stats = self.read_reg(0xC)
-        ret2, LOSIN = self.read_reg(0xD)
+        ret2, OOF_LOSIN = self.read_reg(0xD)
         ret3, LOL = self.read_reg(0xE)
-        return ret1+ret2+ret3, stats & 0x2F, LOSIN & 0x0F, LOL & self.LOL_b
+        return ret1+ret2+ret3, stats & 0x2F, OOF_LOSIN & self.LOSIN_b, (OOF_LOSIN & self.OOF_b) >> 4, LOL & self.LOL_b
     
     def read_sticky_status_regs(self):
         ret1, s_stats = self.read_reg(0x11)
-        ret2, s_LOSIN = self.read_reg(0x12)
+        ret2, s_OOF_LOSIN = self.read_reg(0x12)
         ret3, s_LOL = self.read_reg(0x13)
-        return ret1+ret2+ret3, s_stats & 0x2F, s_LOSIN & 0x0F, s_LOL & self.LOL_b
+        return ret1+ret2+ret3, s_stats & 0x2F, s_OOF_LOSIN & self.LOSIN_b, (s_OOF_LOSIN & self.OOF_b) >> 4, s_LOL & self.LOL_b
     
     def print_status_str(self):
-        ret, stats, LOSIN, LOL = self.read_status_regs()
+        ret, stats, LOSIN, OOF, LOL = self.read_status_regs()
         if ret:
             print(self.prefixErrorDevice + "Error reading status!", end='')
             self.i2cDevice.print_details()
@@ -205,19 +205,22 @@ class I2C_Si53xx:
         string += "\t" + str((stats & self.SYSINCAL_b)==self.SYSINCAL_b)
         string += "\t" + str((stats & self.LOSXAXB_b)==self.LOSXAXB_b)
         string += "\t" + str(LOL == self.LOL_b)
+        string += "\t" + str(OOF)
         string += "\t\t" + str(LOSIN)
         return 0, string
-        
+    
+    # Remember they are sticky, so you are supposed to set them to 0 after configuration
     def print_sticky_status_str(self):
-        ret, s_stats, s_LOSIN, s_LOL= self.read_sticky_status_regs()
+        ret, s_stats, s_LOSIN, s_OOF, s_LOL= self.read_sticky_status_regs()
         if ret:
             print(self.prefixErrorDevice + "Error reading sticky status!", end='')
             self.i2cDevice.print_details()
             print(self.prefixErrorDevice + "Error code: {0:d}: ".format(ret))
             return -1, "ERROR"
         string = ""
-        string += " " + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
-        string += " " + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
-        string += " " + str(s_LOL == self.LOL_b)
-        string += " " + str(s_LOSIN)
+        string += "\t" + str((s_stats & self.SYSINCAL_b)==self.SYSINCAL_b)
+        string += "\t" + str((s_stats & self.LOSXAXB_b)==self.LOSXAXB_b)
+        string += "\t" + str(s_LOL == self.LOL_b)
+        string += "\t" + str(s_OOF)
+        string += "\t\t" + str(s_LOSIN)
         return 0, string
