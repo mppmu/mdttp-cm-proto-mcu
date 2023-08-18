@@ -165,10 +165,7 @@ if __name__ == "__main__":
                 print(prefixError, "E.g.: -p IC1 config/clock/Pro_Design/IC1_0x68_100IN0_100_100_100_100_100_100_100_100_NA_FB-Registers.txt")
                 print(prefixError, "E.g.: -p IC11 240.474")
             else:
-                if commandParameters[0] == "IC11":
-                    mdtTp_CM.clk_prog_device_by_name("IC11","240")
-                else: 
-                    mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
+                mdtTp_CM.clk_prog_device_by_name(commandParameters[0], commandParameters[1])
         else:
             mdtTp_CM.clk_prog_all()
     elif command == "clk_reset":
