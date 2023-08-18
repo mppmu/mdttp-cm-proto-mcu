@@ -62,7 +62,7 @@ BUTool.exe -a --cmd cmpwrup --cmd q
 
 sleep 5
 echo "Program the clock synthesizer chip IC11 for clock recovery"
-${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC11
+${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC11 240
 
 echo "Program the clock synthesizer chip IC2 (Si5345A) for FELIX communication."
 ${PY_MCU_CM} -d ${SERIAL_DEVICE} -v ${VERBOSITY} -c clk_setup -p IC2 config/clock/IBERT-TEST/IC2,3,6,7_40IN0_240-Registers.txt
