@@ -151,7 +151,11 @@ class I2C_Si598:
         if freq == "240":
             ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x6C, 0xC0, 0xAB, 0x7E])
         elif freq == "240.474":
-            ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x71, 0x03, 0x1F, 0xC0])
+            # Here I assume that the 200MHz is perfect and so is the rate monitoring. so the first configuration is
+            # ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x71, 0x03, 0x1F, 0xC0])
+            # using that I measured a frequency of 240.479, so the registers are for 240.46823, 
+            # which should give a measurement closer to 240.474
+            ret = self.i2cDevice.write([0x07, 0xE0, 0x48, 0x70, 0xF5, 0xD9, 0x95])
         else :
             print(self.prefixErrorDevice + "Error frequency not recognized, user 240 or 240.474")
             return -1
