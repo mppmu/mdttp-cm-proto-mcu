@@ -25,6 +25,7 @@ import re
 
 # Load the data from the JSON file                                                                               
 #
+device='/dev/ttyUL1'
           
 with open('regs_to_mon.json', 'r') as f:
     data = json.load(f)
@@ -37,13 +38,13 @@ for pin_name, pin_data in data.items():
 
     # Set the multiplexer                                                                                                  
     if previous_mux != reg_mux:
-        subprocess.run(['../../pyMcuCm.py', '-d', '/dev/ttyUSB1', '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x0 0x00 0x00 0x00 0x00 0x{reg_mux}0" ], stdout=subprocess.PIPE)
+        subprocess.run(['../../pyMcuCm.py', '-d', device, '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x0 0x00 0x00 0x00 0x00 0x{reg_mux}0" ], stdout=subprocess.PIPE)
 
     # Set the address to read from                                                                                         
-    subprocess.run(['../../pyMcuCm.py', '-d', '/dev/ttyUSB1', '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x4 " + '0x{:02X}'.format(reg) ], stdout=subprocess.PIPE)
+    subprocess.run(['../../pyMcuCm.py', '-d', device, '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x4 " + '0x{:02X}'.format(reg) ], stdout=subprocess.PIPE)
 
     # Read four bytes                                                                                                      
-    result = subprocess.run(['../../pyMcuCm.py', '-d', '/dev/ttyUSB1', '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x3 4 "], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(['../../pyMcuCm.py', '-d', device, '-c', 'mcu_cmd_raw', '-p', f"i2c 8 0x08 0x3 4 "], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output_hex = result.stdout.strip().decode('utf-8')
 
     # Define a regular expression pattern to match the relevant part of the output
