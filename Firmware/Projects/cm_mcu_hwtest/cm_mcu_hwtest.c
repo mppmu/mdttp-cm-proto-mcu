@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 20 Sep 2022
+// Rev.: 08 Jun 2028
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -183,6 +183,8 @@ int main(void)
         // I2C based functions.
         } else if (!strcasecmp(pcUartCmd, "i2c")) {
             I2CAccess(pcUartCmd, pcUartParam);
+        } else if (!strcasecmp(pcUartCmd, "i2c-bw")) {
+            I2CBurstWrite(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "i2c-det")) {
             I2CDetect(pcUartCmd, pcUartParam);
         // QSSI based functions.
@@ -221,6 +223,7 @@ void Help(void)
     UARTprintf("  delay   MICROSECONDS                Delay execution.\n");
     UARTprintf("  gpio    TYPE [VALUE]                Get/Set the value of a GPIO type.\n");
     UARTprintf("  i2c     PORT SLV-ADR ACC NUM|DATA   I2C access (ACC bits: R/W, Sr, nP, Q).\n");
+    UARTprintf("  i2c-bw  PORT SLV-ADR DATA [,DATA]   I2C burst write. Send chunks of DATA.\n");
     UARTprintf("  i2c-det PORT [MODE]                 I2C detect devices (MODE: 0 = auto,\n");
     UARTprintf("                                          1 = quick command, 2 = read).\n");
     UARTprintf("  info                                Show information about this firmware.\n");

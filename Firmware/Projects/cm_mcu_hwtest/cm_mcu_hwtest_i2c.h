@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 03 Jun 2022
+// Rev.: 08 Jun 2026
 //
 // Header file for the I2C functions of the firmware running on the ATLAS MDT
 // Trigger Processor (TP) Command Module (CM) prototype MCU.
@@ -20,7 +20,9 @@
 // ******************************************************************
 
 int I2CAccess(char *pcCmd, char *pcParam);
+int I2CBurstWrite(char *pcCmd, char *pcParam);
 void I2CAccessHelp(void);
+void I2CBurstWriteHelp(void);
 int I2CPortCheck(uint8_t ui8I2CPort, tI2C **psI2C);
 int I2CDetect(char *pcCmd, char *pcParam);
 

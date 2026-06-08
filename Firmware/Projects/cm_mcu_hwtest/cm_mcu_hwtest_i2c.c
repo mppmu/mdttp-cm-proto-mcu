@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 11 Aug 2022
+// Rev.: 08 Jun 2028
 //
 // I2C functions of the hardware test firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -10,6 +10,7 @@
 
 
 
+#define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -49,6 +50,7 @@ int I2CAccess(char *pcCmd, char *pcParam)
     uint8_t ui8I2CDataNum = 0;
     uint8_t pui8I2CData[32];
     uint32_t ui32I2CMasterStatus;
+
     // Parse parameters.
     for (i = 0; i < sizeof(pui8I2CData) / sizeof(pui8I2CData[0]); i++) {
         if (i != 0) pcParam = strtok(NULL, UI_STR_DELIMITER);
@@ -131,6 +133,93 @@ int I2CAccess(char *pcCmd, char *pcParam)
 
 
 
+// I2C burst write.
+int I2CBurstWrite(char *pcCmd, char *pcParam)
+{
+    int i;
+    tI2C *psI2C;
+    uint8_t ui8I2CPort = 0;
+    uint8_t ui8I2CSlaveAddr = 0;
+    bool bI2CRepeatedStart = false; // Repeated start.
+    bool bI2CStop = true;           // Generate stop condition.
+    uint8_t ui8I2CDataNum = 0;
+    uint8_t pui8I2CData[128];
+    bool bFirstDataBlock = true;
+    uint32_t ui32I2CMasterStatus;
+    char *pcDataBlock;
+    char *pcSaveptrDataBlock;
+    char *pcData;
+    char *pcSaveptrData;
+
+    // Process data blocks.
+    pcDataBlock = strtok_r(pcParam, UI_STR_DELIMITER_DATABLOCK, &pcSaveptrDataBlock);
+    bFirstDataBlock = true;
+    while (pcDataBlock != NULL) {
+        // Process data inside a data block.
+        pcData = strtok_r(pcDataBlock, UI_STR_DELIMITER, &pcSaveptrData);
+        ui8I2CDataNum = 0;
+        while (pcData != NULL) {
+            // Get I2C port number and slave address from the first data block.
+            if (bFirstDataBlock) {
+                for (i = 0; i <= 2; i++) {
+                    if (i != 0) pcData = strtok_r(NULL, UI_STR_DELIMITER, &pcSaveptrData);
+                    if (i == 0) {
+                        if (pcData == NULL) {
+                            UARTprintf("%s: I2C port number required after command `%s'.\n", UI_STR_ERROR, pcCmd);
+                            I2CBurstWriteHelp();
+                            return -1;
+                        } else {
+                            ui8I2CPort = (uint8_t) strtoul(pcData, (char **) NULL, 0) & 0xff;
+                        }
+                        // Check if the I2C port number is valid. If so, set the psI2C pointer to the selected I2C port struct.
+                        if (I2CPortCheck(ui8I2CPort, &psI2C)) return -1;
+                    } else if (i == 1) {
+                        if (pcData == NULL) {
+                            UARTprintf("%s: I2C slave address required after command `%s'.\n", UI_STR_ERROR, pcCmd);
+                            I2CBurstWriteHelp();
+                            return -1;
+                        } else {
+                            ui8I2CSlaveAddr = (uint8_t) strtoul(pcData, (char **) NULL, 0) & 0xff;
+                        }
+                    } else if (i == 2) {
+                        if (pcData == NULL) {
+                            UARTprintf("%s: At least one data byte required after command `%s'.\n", UI_STR_ERROR, pcCmd);
+                            I2CBurstWriteHelp();
+                            return -1;
+                        }
+                    }
+                }
+                bFirstDataBlock = false;
+            }
+            pui8I2CData[ui8I2CDataNum] = (uint8_t) strtoul(pcData, (char **) NULL, 0) & 0xff;
+            ui8I2CDataNum++;
+            pcData = strtok_r(NULL, UI_STR_DELIMITER, &pcSaveptrData);
+        }
+        // Send data block, if it is not empty.
+        if (ui8I2CDataNum > 0) {
+            ui32I2CMasterStatus = I2CMasterWriteAdv(psI2C, ui8I2CSlaveAddr, pui8I2CData, ui8I2CDataNum, bI2CRepeatedStart, bI2CStop);
+            // Check the I2C status.
+            if (ui32I2CMasterStatus) {
+                UARTprintf("%s: Error flags from I2C the master %d: 0x%08x", UI_STR_ERROR, ui8I2CPort, ui32I2CMasterStatus);
+                if (ui32I2CMasterStatus & I2C_MASTER_INT_TIMEOUT) UARTprintf("\n%s: I2C timeout.", UI_STR_ERROR);
+                if (ui32I2CMasterStatus & I2C_MASTER_INT_NACK) UARTprintf("\n%s: NACK received.", UI_STR_ERROR);
+                if (ui32I2CMasterStatus & I2C_MASTER_INT_ARB_LOST) UARTprintf("\n%s: I2C bus arbitration lost.", UI_STR_ERROR);
+                if (ui32I2CMasterStatus & 0x1) UARTprintf("\n%s: Unknown error.", UI_STR_ERROR);
+                UARTprintf("\n%s: Burst write failed!", UI_STR_ERROR);
+                return -1;
+            }
+        }
+        // Look for next data block.
+        pcDataBlock = strtok_r(NULL, UI_STR_DELIMITER_DATABLOCK, &pcSaveptrDataBlock);
+    }
+
+    UARTprintf("%s.", UI_STR_OK);
+
+    return 0;
+}
+
+
+
 // Show help on I2C access command.
 void I2CAccessHelp(void)
 {
@@ -141,6 +230,17 @@ void I2CAccessHelp(void)
     UARTprintf("  1: Repeated start (Sr)              0 = no Sr, 1 = Sr\n");
     UARTprintf("  2: No stop condition (nP)           0 = generate stop cond. P, 1 = omit P\n");
     UARTprintf("  3: Quick command (Q)                0 = no Q, 1 = Q");
+}
+
+
+
+// Show help on I2C burst write command.
+void I2CBurstWriteHelp(void)
+{
+    UARTprintf("I2C burst write command:\n");
+    UARTprintf("  i2c     PORT SLV-ADR DATA [,DATA]\n");
+    UARTprintf("Send chucks of data as separate blocks. Data blocks are separated by comma `%s'.\n", UI_STR_DELIMITER_DATABLOCK);
+    UARTprintf("Every block begins with an I2C start condition and ends with a stop condition.");
 }
 
 
