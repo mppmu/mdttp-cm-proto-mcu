@@ -35,6 +35,8 @@ class I2C_LTM4700:
     hwCmdCodeOnOffConfig    = 0x02
     hwCmdCodeClearFaults    = 0x03
     hwCmdCodeWriteProtect   = 0x10
+    hwCmdCodeVOUT_OV_FAULT_LIMIT = 0x40
+    hwCmdCodeVOUT_OV_FAULT_RESPONSE = 0x41
     hwCmdCodeReadVin        = 0x88
     hwCmdCodeReadIin        = 0x89
     hwCmdCodeReadVout       = 0x8b
@@ -42,6 +44,7 @@ class I2C_LTM4700:
     hwCmdCodeReadTempExt    = 0x8d
     hwCmdCodeReadTempInt    = 0x8e
     hwCmdCodeMfrConfigChan  = 0xd0
+    hwCmdStatusWord         = 0x79
     hwDataLenMin            = 1
     hwDataLenMax            = 2
     hwPageMin               = 0     # Lowest hardware channel/page number.
@@ -52,12 +55,12 @@ class I2C_LTM4700:
 
 
     # Initialize the I2C device.
-    def __init__(self, mcuI2C, slaveAddr, deviceName):
+    def __init__(self, mcuI2C, slaveAddr, deviceName, debugLevel=0):
         self.mcuI2C = mcuI2C
         self.slaveAddr = slaveAddr
         self.deviceName = deviceName
         self.i2cDevice = I2CDevice.I2CDevice(self.mcuI2C, self.slaveAddr, self.deviceName)
-        self.i2cDevice.debugLevel = self.debugLevel
+        self.i2cDevice.debugLevel = debugLevel
         self.prefixDebugDevice = self.prefixDebug + self.deviceName + ": "
         self.prefixErrorDevice = self.prefixError + self.deviceName + ": "
         self.errorCount = 0
@@ -91,6 +94,12 @@ class I2C_LTM4700:
             cmdName = "READ_TEMPERATURE_2"
         elif cmdCode == cls.hwCmdCodeMfrConfigChan:
             cmdName = "MFR_CHAN_CONFIG"
+        elif cmdCode == cls.hwCmdCodeVOUT_OV_FAULT_LIMIT:
+            cmdName = "VOUT_OV_FAULT_LIMIT"
+        elif cmdCode == cls.hwCmdCodeVOUT_OV_FAULT_RESPONSE:
+            cmdName = "VOUT_OV_FAULT_RESPONSE"
+        elif cmdCode == cls.hwCmdStatusWord:
+            cmdName = "STATUS_WORD"
         elif cmdCode <= 0xfd:
             cmdName = "unknown"
         else:
@@ -337,7 +346,41 @@ class I2C_LTM4700:
         vinRaw = (data[1] << 8) + data[0]
         return 0, self.l11_to_float(vinRaw)
 
+    def read_vout_fault_limit(self, channel):
+        if self.set_page(channel):
+            self.errorCount += 1
+            return -1, float(-1)
+        # Read the VOUT overvoltage fault limit value.
+        ret, data = self.read(self.hwCmdCodeVOUT_OV_FAULT_LIMIT, 2)
+        if ret:
+            self.errorCount += 1
+            print(self.prefixErrorDevice + "Error reading the output voltage overvoltage fault limit of channel {0:d}. Error code: 0x{1:02x}: ".format(channel, ret))
+            return -1, float(-1)
+        voutRaw = (data[1] << 8) + data[0]
+        return 0, self.l16_to_float(voutRaw)
 
+    def read_vout_fault_response(self, channel):
+        if self.set_page(channel):
+            self.errorCount += 1
+            return -1, -1
+        ret, data = self.read(self.hwCmdCodeVOUT_OV_FAULT_RESPONSE, 1)
+        if ret:
+            self.errorCount += 1
+            print(self.prefixErrorDevice + "Error reading the output voltage fault response. Error code: 0x{0:02x}: ".format(ret))
+            return -1, -1
+        voutFaultResponse = data[0]
+        return 0, voutFaultResponse
+
+    def read_byte(self, cmdCode, channel = 0):
+        if self.set_page(channel):
+            self.errorCount += 1
+            return -1, float(-1)
+        ret, data = self.read(cmdCode, 1)
+        if ret:
+            self.errorCount += 1
+            print(self.prefixErrorDevice + "Error reading the command 0x{0:02x}. Error code: 0x{1:02x}: ".format(cmdCode, ret))
+            return -1, 0xff
+        return 0, data[0]
 
     # Read the measured input supply current.
     def read_iin(self):
@@ -349,7 +392,17 @@ class I2C_LTM4700:
         iinRaw = (data[1] << 8) + data[0]
         return 0, self.l11_to_float(iinRaw)
 
-
+    def read_status_word(self, channel):
+        if self.set_page(channel):
+            self.errorCount += 1
+            return -1, float(-1)
+        ret, data = self.read(self.hwCmdStatusWord, 2)
+        if ret:
+            self.errorCount += 1
+            print(self.prefixErrorDevice + "Error reading the status word. Error code: 0x{0:02x}: ".format(ret))
+            return -1, 0xffff
+        statusWord = (data[1] << 8) + data[0]
+        return 0, statusWord
 
     # Read the measured output voltage.
     def read_vout(self, channel):
@@ -364,8 +417,6 @@ class I2C_LTM4700:
             return -1, float(-1)
         voutRaw = (data[1] << 8) + data[0]
         return 0, self.l16_to_float(voutRaw)
-
-
 
     # Read the average output current in amperes.
     def read_iout(self, channel):
@@ -453,5 +504,58 @@ class I2C_LTM4700:
             if ret:
                 return -1, [-1]
             iout.append(ioutChannel)
-        return 0, [temperatureExt, temperatureInt, vin, iin, vout, iout]
+
+        vout_fault_limit = []
+        for channel in range(self.hwChannels):
+            ret, voutFaultLimit = self.read_vout_fault_limit(channel)
+            if ret:
+                return -1, [-1]
+            vout_fault_limit.append(voutFaultLimit)
+        vout_fault_response = []
+        status_word = []
+        status_mfr_specific = []
+        status_vout = []
+        mfr_pwr_comp = []
+        mfr_pwr_mode = []
+        mfr_pwr_config = []
+
+        for channel in range(self.hwChannels):
+            ret, voutFaultResponse = self.read_vout_fault_response(channel)
+            if ret:
+                return -1, [-1]
+            vout_fault_response.append(voutFaultResponse)
+
+            # Return the status information
+            # Iin.
+            ret, statusWordResponse = self.read_status_word(channel)
+            if ret:
+                return -1, [-1]
+            status_word.append(statusWordResponse)
+
+            ret, resp = self.read_byte(0x80, channel)
+            if ret:
+                return -1, [-1]
+            status_mfr_specific.append(resp)
+
+            ret, resp = self.read_byte(0x7A, channel)
+            if ret:
+                return -1, [-1]
+            status_vout.append(resp)
+
+            ret, resp = self.read_byte(0xD3, channel)
+            if ret:
+                return -1, [-1]
+            mfr_pwr_comp.append(resp)
+
+            ret, resp = self.read_byte(0xD4, channel)
+            if ret:
+                return -1, [-1]
+            mfr_pwr_mode.append(resp)
+
+            ret, resp = self.read_byte(0xF5, channel)
+            if ret:
+                return -1, [-1]
+            mfr_pwr_config.append(resp)
+
+        return 0, [temperatureExt, temperatureInt, vin, iin, vout, iout, vout_fault_limit, vout_fault_response, status_word, status_mfr_specific, status_vout, mfr_pwr_comp, mfr_pwr_mode, mfr_pwr_config]
 

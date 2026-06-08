@@ -1,0 +1,54 @@
+1) Read start-up frequency configuration (RFREQ, HS_DIV, and N1) from the device after power-up or register reset
+
+     Registers for the Current Configuration 
+      Register   Data
+          7       0xA1
+          8       0x47
+          9       0xC1
+         10       0x31
+         11       0x58
+         12       0x08
+
+      RFREQ  = 0x7C1315808
+             = 0x7C1315808 / (2^28) = 124.07454684
+      HS_DIV = 0x5 = 9
+      N1     = 0x5 = 6
+
+2) Calculate the actual nominal crystal frequency where f0 is the start-up output frequency
+
+      fxtal = ( f0 x HS_DIV x N1 ) / RFREQ 
+            = (90.000000000 MHz x 9 x 6) / 124.074546844
+            = 39.170000000 MHz
+
+3) Choose the new output frequency (f1).
+      Output Frequency (f1) = 240.474000000 MHz
+
+4) Choose the output dividers for the new frequency configuration (HS_DIV and N1) by ensuring the DCO oscillation frequency (fdco) is between 4.85 GHz and 5.67 GHz where fdco = f1 x HS_DIV x N1. See the Divider Combinations tab for more options.
+
+      HS_DIV = 0x7 = 11
+      N1     = 0x1 = 2
+      fdco = f1 x HS_DIV x N1 
+           = 240.474000000 MHz x 11 x 2
+           = 5.290428000 GHz
+
+5) Calculate the new crystal frequency multiplication ratio (RFREQ) as RFREQ = fdco / fxtal
+
+      RFREQ = fdco / fxtal 
+            = 5.290428000 GHz / 39.170000000 MHz
+            = 135.06326270
+            = 135.06326270 x (2^28) = 0x871031FC0
+
+6) Freeze the DCO by setting Freeze DCO = 1 (bit 4 of register 137).
+
+7) Write the new frequency configuration (RFREQ, HS_DIV, and N1)
+
+     Registers for the New Configuration 
+      Register   Data
+          7       0xE0
+          8       0x48
+          9       0x71
+         10       0x03
+         11       0x1F
+         12       0xC0
+
+8) Unfreeze the DCO by setting Freeze DCO = 0 and assert the NewFreq bit (bit 6 of register 135) within 10 ms.

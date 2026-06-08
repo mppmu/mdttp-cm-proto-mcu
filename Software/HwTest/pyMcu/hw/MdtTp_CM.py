@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 20 Nov 2020
+# Rev.: 08 Jun 2026
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -26,6 +26,7 @@ import I2C_PCA9535
 import I2C_PCA9545
 import I2C_Si53xx
 import I2C_FireFly
+import I2C_Si598
 
 
 
@@ -152,7 +153,15 @@ class MdtTp_CM:
         print(self.prefixStatus + "LTC2977_2 (P1V8_MISC, P3V3_MISC, P5V_MISC, P3V3_FF) : " + ("OK" if (powerGood & 0x200) else "-"))
         return ret
 
-
+    # Read the power status of the CM.
+    def power_check(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Checking the power status of the CM. exit 1 if not completely on")
+        cmd = "gpio power-good"
+        ret, powerGoodStr = self.mcu_cmd_raw(cmd)
+        print('response from ' + cmd + ' is: ' + powerGoodStr )
+        ret, powerGood = self.mcu_str2int(powerGoodStr)
+        return ret + (powerGood!=0x3ff)
 
     # Read the serial number of the board.
     def serial_number(self):
@@ -161,6 +170,23 @@ class MdtTp_CM:
         ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_IC22_DS28CM00.read_all()
         if ret:
             print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_IC22_DS28CM00.deviceName)
+            return ret
+        print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
+        print("Serial number: 0x{0:012x}".format(serialNumber))
+        print("CRC: 0x{0:02x}".format(crc))
+        if crcError:
+            self.errorCount += 1
+            print(self.prefixError + "CRC error detected!")
+            return 1
+        return 0
+
+    # Read the serial number of the SM.
+    def serial_number_sm(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_SM_DS28CM00.deviceName)
+        ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_SM_DS28CM00.read_all()
+        if ret:
+            print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_SM_DS28CM00.deviceName)
             return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
@@ -222,6 +248,7 @@ class MdtTp_CM:
                 print(self.prefixDebug + "{0:s} manufacturer ID: 0x{1:02x}".format(sensor.deviceName, sensor.read_manufacturer_id()[1]))
                 print(self.prefixDebug + "{0:s} revision: 0x{1:02x}".format(sensor.deviceName, sensor.read_revision()[1]))
             print("Board {0:d}                  - {1:15s}: {2:6.3f} degC".format(sensorNum, sensor.deviceName, sensor.read_temp_int()[1]))
+            print("Board {0:d}                  - {1:15s}: status 0x{2:d}".format(sensorNum, sensor.deviceName, sensor.read_status()[1]))
             sensorNum += 1
 
 
@@ -261,6 +288,11 @@ class MdtTp_CM:
         self.i2cDevice_IC22_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[4], 0x50, "IC22 (DS28CM00)")
         self.i2cDevice_IC22_DS28CM00.debugLevel = self.debugLevel
 
+        # SM: DS28CM00 silicon serial number IC.
+        # I2C port 7, slave address 0x50.
+        self.i2cDevice_SM_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[7], 0x50, "SM (DS28CM00)")
+        self.i2cDevice_SM_DS28CM00.debugLevel = self.debugLevel
+
         # MCP9902 low-temperature remote diode sensor IC.
         # IC60: I2C port 4, slave address 0x3c, VU13P temperature.
         self.i2cDevice_IC60_MCP9902 = I2C_MCP9902.I2C_MCP9902(self.mcuI2C[4], 0x3c, "IC60 (MCP9902)")
@@ -288,6 +320,48 @@ class MdtTp_CM:
         # Define the I2C I/O expander devices.
         self.i2c_io_exp_define()
 
+        # FireFly modules.
+        self.i2cDevice_FF_I2CMUX_0x70 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x70, "FF_MUX_0x70");
+        self.i2cDevice_FF_I2CMUX_0x71 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x71, "FF_MUX_0x71");
+        self.i2cDevice_FF_I2CMUX_0x72 = I2C_PCA9545.I2C_PCA9545(self.mcuI2C[2], 0x72, "FF_MUX_0x72");
+        self.i2cDevice_FF_tx = I2C_FireFly.I2C_FireFly(self.mcuI2C[2], 0x50, "FF_TX", 'tx');
+        self.i2cDevice_FF_rx = I2C_FireFly.I2C_FireFly(self.mcuI2C[2], 0x54, "FF_RX", 'rx');
+
+    # Read FF status.
+    def read_ff(self, ff):
+        iret, temp = self.i2cDevice_FF_tx.read_temperature();
+        iret, vcc = self.i2cDevice_FF_tx.read_vcc();
+        print("FF%d TX: %d degC %.2f V" % (ff, temp, vcc));
+        iret, temp = self.i2cDevice_FF_rx.read_temperature();
+        iret, vcc = self.i2cDevice_FF_rx.read_vcc();
+        print("FF%d RX: %d degC %.2f V" % (ff,temp, vcc));
+    def read_ff_status(self):
+        self.i2cDevice_FF_I2CMUX_0x70.disable();
+        self.i2cDevice_FF_I2CMUX_0x71.disable();
+        self.i2cDevice_FF_I2CMUX_0x72.disable();
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([0]);
+        self.read_ff(0);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([1]);
+        self.read_ff(2);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([2]);
+        self.read_ff(4);
+        self.i2cDevice_FF_I2CMUX_0x70.set_channels([3]);
+        self.read_ff(6);
+        self.i2cDevice_FF_I2CMUX_0x70.disable();
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([0]);
+        self.read_ff(1);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([1]);
+        self.read_ff(3);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([2]);
+        self.read_ff(5);
+        self.i2cDevice_FF_I2CMUX_0x71.set_channels([3]);
+        self.read_ff(7);
+        self.i2cDevice_FF_I2CMUX_0x71.disable();
+        self.i2cDevice_FF_I2CMUX_0x72.set_channels([0]);
+        self.read_ff(8);
+        self.i2cDevice_FF_I2CMUX_0x72.set_channels([1]);
+        self.read_ff(9);
+        self.i2cDevice_FF_I2CMUX_0x72.disable();
 
 
     # Initialize the I2C buses and devices.
@@ -505,6 +579,16 @@ class MdtTp_CM:
         for channel in range(i2cDevice.hwChannels):
             print(self.prefixStatus + "Channel {0:d}: {1:7s}: {2:5.2f} V".format(channel, "V_out", data[4][channel]))
             print(self.prefixStatus + "Channel {0:d}: {1:7s}: {2:5.2f} A".format(channel, "I_out", data[5][channel]))
+            if debugLevel >= 1:
+                print(self.prefixStatus + "Channel {0:d}: {1:7s}: {2:5.2f} V".format(channel, "VOUT_FAULT_LIMIT", data[6][channel]))
+                print(self.prefixStatus + "Channel {0:d}: {1:7s}: {0:d} ".format(channel, "VOUT_FAULT_RESPONSE", data[7][channel]))
+                print(self.prefixStatus + "STATUS_WORD: " + str(data[8][channel]))
+                print(self.prefixStatus + "status_mfr_specific: " + str(data[9][channel]))
+                print(self.prefixStatus + "status_vout: " + str(data[10][channel]))
+                print(self.prefixStatus + "mfr_pwr_comp: " + str(data[11][channel]))
+                print(self.prefixStatus + "mfr_pwr_mode: " + str(data[12][channel]))
+                print(self.prefixStatus + "mfr_pwr_config: " + str(data[13][channel]))
+        print("\n")
         return 0
 
 
@@ -532,6 +616,15 @@ class MdtTp_CM:
         for channel in range(i2cDevice.hwChannels):
             print(self.prefixStatus + "{0:d}: {1:23s}: {2:5.2f} V".format(channel, measurementNames[channel], data[4][channel]))
             print(self.prefixStatus + "{0:d}: {1:23s}: {2:5.2f} A".format(channel, measurementNames[channel], data[5][channel]))
+            if debugLevel >= 1:
+                print(self.prefixStatus + "{0:d}: {1:7s}: {0:d} ".format(channel, "VOUT_FAULT_RESPONSE", data[7][channel]))
+                print(self.prefixStatus + "STATUS_WORD: " + str(data[8][channel]))
+                print(self.prefixStatus + "status_mfr_specific: " + str(data[9][channel]))
+                print(self.prefixStatus + "status_vout: " + str(data[10][channel]))
+                print(self.prefixStatus + "mfr_pwr_comp: " + str(data[11][channel]))
+                print(self.prefixStatus + "mfr_pwr_mode: " + str(data[12][channel]))
+                print(self.prefixStatus + "mfr_pwr_config: " + str(data[13][channel]))
+        print("\n")
         return 0
 
 
@@ -692,6 +785,11 @@ class MdtTp_CM:
         self.i2cDevice_IC10_Si5345A.muxChannel = 2
         self.i2cDevice_IC10_Si5345A.regMapFile = os.path.join("config", "clock", "Pro_Design", "IC10_0x69_100IN1_NA_NA_200_NA_NA_NA_NA_NA_NA_FB-Registers.txt")
         self.i2cDevice_IC10_Si5345A.debugLevel = self.debugLevel
+        # IC11 (Si598): I2C port 3, slave address 0x6a, clock I2C mux port 3.
+        self.i2cDevice_IC11_Si598 = I2C_Si598.I2C_Si598(self.mcuI2C[3], 0x10, "IC11 (Si598)")
+        self.i2cDevice_IC11_Si598.muxChannel = 3
+        self.i2cDevice_IC11_Si598.regMapFile = os.path.join("config", "clock", "Pro_Design", "none")
+        self.i2cDevice_IC11_Si598.debugLevel = self.debugLevel
         # IC12 (Si5345A): I2C port 3, slave address 0x6a, clock I2C mux port 2.
         self.i2cDevice_IC12_Si5345A = I2C_Si53xx.I2C_Si53xx(self.mcuI2C[3], 0x6a, "IC12 (Si5345A)")
         self.i2cDevice_IC12_Si5345A.muxChannel = 2
@@ -706,15 +804,47 @@ class MdtTp_CM:
         muxChannel = i2cDevice.muxChannel
         if self.debugLevel >= 1:
             print(self.prefixDebug + "Setting I2C mux for clock chips {0:s} to channel {1:d}.".format(self.i2cDevice_IC36_PCA9545APW.deviceName, muxChannel))
-        self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        ret = self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        if ret != 0:
+            print (self.prefixError + "Error setting the I2C channel to 0x{0:x}").format(muxChannel)
+            return -1
         self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
         regMapFile = i2cDevice.regMapFile
         print("Initialitzing {0:s} on I2C port {1:d} with register map file `{2:s}'.".\
             format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, regMapFile))
         i2cDevice.debugLevel = self.debugLevel
-        i2cDevice.config_file(regMapFile)
+        ret = i2cDevice.config_file(regMapFile)
+        if ret != 0:
+            print(self.prefixError + "Could not config clock chip!")
+        return ret
 
 
+
+    def clk_prog_ic11(self, i2cDevice):
+        i2cDevice.debugLevel = self.debugLevel
+        muxChannel = i2cDevice.muxChannel
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "Setting I2C mux for clock chips {0:s} to channel {1:d}.".format(self.i2cDevice_IC36_PCA9545APW.deviceName, muxChannel))
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        ret = self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        if ret != 0:
+            print (self.prefixError + "Error setting the I2C channel")
+            return -1
+        ret, freq = i2cDevice.get_freq()
+        if ret:
+            print (self.prefixError + "Error reading initial frequency")
+            return -1
+        print ("Initial frequency is {}".format(freq))
+        ret = i2cDevice.prog(i2cDevice.clk_freq)
+        if ret:
+            print (self.prefixError + "Error writing configuration")
+            return -1
+        ret, freq = i2cDevice.get_freq()
+        if ret:
+            print (self.prefixError + "Error reading initial frequency")
+            return -1
+        print ("New frequency is {}".format(freq))
+        return 0
 
     # Program a single Silicon Labs clock IC from a register map file by its name.
     def clk_prog_device_by_name(self, clkDevName, regMapFile):
@@ -728,6 +858,7 @@ class MdtTp_CM:
                          self.i2cDevice_IC8_Si5345A,
                          self.i2cDevice_IC9_Si5345A,
                          self.i2cDevice_IC10_Si5345A,
+                         self.i2cDevice_IC11_Si598,
                          self.i2cDevice_IC12_Si5345A]
         clkDevice = None
         for dev in clkDeviceList:
@@ -739,10 +870,13 @@ class MdtTp_CM:
             print(self.prefixError + "Valid clock devices: ", end='')
             for dev in clkDeviceList:
                 print(dev.deviceName.split(' ')[0] + " ", end='')
-            print()
             return -1
-        self.clk_prog_device_file(clkDevice)
-        return 0
+        if self.debugLevel >= 1:
+            print ("Name is " + clkDevice.deviceName.split(' ')[0] + ".")
+        if "IC11" == clkDevice.deviceName.split(' ')[0]:
+            clkDevice.clk_freq = regMapFile
+            return self.clk_prog_ic11(clkDevice)
+        return self.clk_prog_device_file(clkDevice)
 
 
 
@@ -761,6 +895,39 @@ class MdtTp_CM:
         self.clk_prog_device_file(self.i2cDevice_IC9_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
+
+    # Get status bits for a single clock chip.
+    def clk_print_status(self, i2cDevice):
+        i2cDevice.debugLevel = self.debugLevel
+        muxChannel = i2cDevice.muxChannel
+        if self.debugLevel >= 2:
+            print(self.prefixDebug + "Setting I2C mux for clock chips {0:s} to channel {1:d}.".format(self.i2cDevice_IC36_PCA9545APW.deviceName, muxChannel))
+        self.i2cDevice_IC36_PCA9545APW.set_channels([muxChannel])
+        self.i2cDevice_IC36_PCA9545APW.debugLevel = self.debugLevel
+        i2cDevice.debugLevel = self.debugLevel
+        ret, status = i2cDevice.print_status_str()
+        if ret:
+            print(self.prefixError + "Failed reading status of {0:s} on I2C port {1:d} ".\
+            format(i2cDevice.deviceName, i2cDevice.mcuI2C.port))
+        else:
+            print("Reading status of {0:s} on I2C port {1:d} is {2:s}".\
+            format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, status))
+
+    def clk_print_status_all(self):
+        if self.debugLevel >= 1:
+            print(self.prefixDebug + "printing status for all clock chips.")
+        print("status are:                                        \tSYSINCAL LOSXAXB LOL \tOOF\tLOSIN")
+        self.clk_print_status(self.i2cDevice_IC1_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC2_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC3_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC4_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC5_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC6_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC7_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC8_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC9_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC10_Si5345A)
+        self.clk_print_status(self.i2cDevice_IC12_Si5345A)
 
 
 
@@ -1178,4 +1345,23 @@ class MdtTp_CM:
         # De-assert reset (active low).
         for signal in clkResetSignals:
             self.i2c_io_exp_set_output(signal, 1)
+
+    def i2c_io_exp_status_clk(self):
+        clkstatusSignals = {
+            "IC1":"FF_CLK_LOLb",
+            "IC2":"CLK_FF_024_0_LOLb",
+            "IC3":"CLK_FF_024_1_LOLb",
+            "IC4":"CLK_FF_68_0_LOLb",
+            "IC5":"CLK_FF_68_1_LOLb",
+            "IC6":"CLK_FF_135_0_LOLb",
+            "IC7":"CLK_FF_135_1_LOLb",
+            "IC8":"CLK_FF_79_0_LOLb",
+            "IC9":"CLK_FF_79_1_LOLb",
+            "IC10":"CLK_FF_TD_0_LOLb",
+            "IC12":"SM_LOLb"}
+
+        # Read LOL for all clock chips.
+        for ic in clkstatusSignals.keys():
+            print(ic)
+            self.i2c_io_exp_get_input(clkstatusSignals[ic])
 
