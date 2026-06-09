@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 08 Jun 2028
+// Rev.: 09 Jun 2026
 //
 // I2C functions of the hardware test firmware running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) prototype MCU.
@@ -143,13 +143,29 @@ int I2CBurstWrite(char *pcCmd, char *pcParam)
     bool bI2CRepeatedStart = false; // Repeated start.
     bool bI2CStop = true;           // Generate stop condition.
     uint8_t ui8I2CDataNum = 0;
-    uint8_t pui8I2CData[128];
+    static uint8_t pui8I2CData[128];
     bool bFirstDataBlock = true;
     uint32_t ui32I2CMasterStatus;
+    char *pcParamLastToken;
+    char *pcParamTemp;
     char *pcDataBlock;
     char *pcSaveptrDataBlock;
     char *pcData;
     char *pcSaveptrData;
+
+    // Recombine pcParam into one string, which is required for searching and
+    // processing the data blocks.
+    pcParamLastToken = pcParam;
+    while ((pcParamTemp = strtok(NULL, UI_STR_DELIMITER)) != NULL) {
+        pcParamLastToken = pcParamTemp;
+    }
+    pcParamTemp = pcParam;
+    while (pcParamTemp < pcParamLastToken) {
+        if (*pcParamTemp == 0) {
+            *pcParamTemp = UI_STR_DELIMITER[0];
+        }
+        pcParamTemp++;
+    }
 
     // Process data blocks.
     pcDataBlock = strtok_r(pcParam, UI_STR_DELIMITER_DATABLOCK, &pcSaveptrDataBlock);
@@ -238,7 +254,7 @@ void I2CAccessHelp(void)
 void I2CBurstWriteHelp(void)
 {
     UARTprintf("I2C burst write command:\n");
-    UARTprintf("  i2c     PORT SLV-ADR DATA [,DATA]\n");
+    UARTprintf("  i2c-bw  PORT SLV-ADR DATA [,DATA]\n");
     UARTprintf("Send chucks of data as separate blocks. Data blocks are separated by comma `%s'.\n", UI_STR_DELIMITER_DATABLOCK);
     UARTprintf("Every block begins with an I2C start condition and ends with a stop condition.");
 }
