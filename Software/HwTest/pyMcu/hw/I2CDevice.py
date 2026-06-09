@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 30 Apr 2020
-# Rev.: 10 Nov 2020
+# Rev.: 08 Jun 2026
 #
 # Python class implementing generic hardware access for I2C devices.
 #
@@ -57,6 +57,30 @@ class I2CDevice:
             return ret
         self.accessWrite += 1
         self.bytesWritten += len(dataWr)
+        return 0
+
+
+
+    # Write data to the I2C device using burst mode, i.e. send a list of blocks in one chunk.
+    def write_burst(self, burstDataWr):
+        if self.debugLevel >= 3:
+            print(self.prefixDebugDevice + "Writing data.", end='')
+            print(self.prefixDetails + "Data:", end='')
+            for block in burstDataWr:
+                for datum in block:
+                    print(" 0x{0:02x}".format(datum), end='')
+                print(",".format(datum), end='')
+            self.print_details()
+        ret = self.mcuI2C.ms_write_burst(self.slaveAddr, burstDataWr)
+        if ret:
+            self.errorCount += 1
+            print(self.prefixErrorDevice + "Error writing data in burst mode!", end='')
+            self.print_details()
+            return ret
+        for block in burstDataWr:
+            # One physical I2C write transaction per block.
+            self.accessWrite += 1
+            self.bytesWritten += len(block)
         return 0
 
 

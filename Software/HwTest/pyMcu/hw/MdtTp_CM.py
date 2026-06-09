@@ -813,7 +813,7 @@ class MdtTp_CM:
         print("Initialitzing {0:s} on I2C port {1:d} with register map file `{2:s}'.".\
             format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, regMapFile))
         i2cDevice.debugLevel = self.debugLevel
-        ret = i2cDevice.config_file(regMapFile)
+        ret = i2cDevice.config_file(fileRegMapName=regMapFile, burstMode=true)
         if ret != 0:
             print(self.prefixError + "Could not config clock chip!")
         return ret

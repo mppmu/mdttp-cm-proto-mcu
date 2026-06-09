@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 28 Mar 2020
-# Rev.: 08 Sep 2020
+# Rev.: 08 Jun 2026
 #
 # Python class for using the I2C ports of the TM4C1290NCPDT MCU.
 #
@@ -114,6 +114,38 @@ class McuI2C:
         ret = self.ms_send_cmd(cmd)
         self.accessWrite += 1
         self.bytesWritten += len(data)
+        return ret
+
+
+
+    # Write data to the I2C master port in burst mode.
+    def ms_write_burst(self, slaveAddr, burstDataWr):
+        if len(burstDataWr) < 1:
+            # Do not increase the error counter here!
+            print(self.prefixError + "Error writing to the I2C master port {0:d}!".format(self.port))
+            if self.debugLevel >= 1:
+                print(self.prefixError + "At least one data byte must be provided!")
+            return -1
+        cmd = "i2c-bw {0:d} 0x{1:02x} 0x{2:01x}".format(self.port, slaveAddr & 0x7f)
+        for block in burstDataWr:
+            for datum in block:
+                cmd += " 0x{0:02x}".format(datum & 0xff)
+            cmd += ","
+        if self.debugLevel >= 2:
+            print(self.prefixDebug + "Writing data to the I2C master port {0:d} in burst mode.".format(self.port), end='')
+            print(self.separatorDetails + "Slave address: 0x{0:02x}".format(slaveAddr), end='')
+            print(self.separatorDetails + "Data:", end='')
+            for block in burstDataWr:
+                for datum in block:
+                    print(" 0x{0:02x}".format(datum & 0xff), end='')
+                print(",")
+                print("      ", end='')
+            print()
+        # Send command.
+        ret = self.ms_send_cmd(cmd)
+        for block in burstDataWr:
+            self.accessWrite += 1
+            self.bytesWritten += len(block)
         return ret
 
 

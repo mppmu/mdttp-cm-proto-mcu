@@ -64,7 +64,7 @@ class I2C_Si53xx:
     
     # Load the configuration of an Si53xx IC from a register map file produced
     # with the ClockBuilder Pro software.
-    def config_file(self, fileRegMapName):
+    def config_file(self, fileRegMapName, burstMode):
         # Check if fileRegMapName exists.
         if not os.path.exists(fileRegMapName):
             print(self.prefixErrorDevice + "The register map file `{0:s}' does not exist!".format(fileRegMapName))
@@ -79,6 +79,8 @@ class I2C_Si53xx:
             return -1
 
         fileRegMapLineCount = 0
+        if burstMode:
+            burstData = []
         # Read and process the register map file.
         with open(fileRegMapName, encoding='UTF-8') as fileRegMap:
             for fileRegMapLine in fileRegMap:
@@ -94,13 +96,22 @@ class I2C_Si53xx:
                     lineCommentRemoved = lineStripped[0:lineStripped.find(self.fileRegMapMarkComment)].strip(' \t')
                 else:
                     lineCommentRemoved = lineStripped
-                # if line includes word Delay in pos 2, then delay
+                # If line includes word Delay in pos 2, then delay by 300 ms as required according to device specification.
                 if lineStripped.find("Delay") == 2:
+                    # Send preamble data before delay in burst mode.
+                    if burstMode:
+                        ret = self.i2cDevice.write_burst(burstData)
+                        if ret:
+                            print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}' in I2C burst mode! Line number: {1:d}, Data: {2:s}".\
+                                format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
+                            return -1
+                        # Clear burst data after sending.
+                        burstData = []
                     if self.debugLevel >= 3:
-                        print(self.prefixDebugDevice + "Delay found, delaying 300ms")
+                        print(self.prefixDebugDevice + "Delay found, delaying 300 ms.")
                     time.sleep(0.3)
                     continue
-                    # Get list of elements.
+                # Get list of elements.
                 lineElements = list(filter(None, lineCommentRemoved.split(",")))
                 lineElements = list(el.strip(' \t\n\r') for el in lineElements)
                 # Ignore lines without data.
@@ -119,14 +130,29 @@ class I2C_Si53xx:
                 pageByte = (lineData[0] >> 8) & 0xff
                 adrByte = lineData[0] & 0xff
                 dataByte = lineData[1] & 0xff
-                # Set the page register with the upper byte of the 2-byte address.
-                ret = self.i2cDevice.write([0x01, pageByte])
-                # Send second byte of the addresse and the data byte.
-                ret = self.i2cDevice.write([adrByte, dataByte])
-                if ret:
-                    print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}'! Line number: {1:d}, Data: {2:s}".\
-                        format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
-                    return -1
+                # Faster burst mode.
+                if burstMode:
+                    burstData.append([0x01, pageByte])
+                    burstData.append([adrByte, dataByte])
+                    # Send out burst data when a certain length is reached.
+                    if len(burstData) >= 20:
+                        ret = self.i2cDevice.write_burst(burstData)
+                        if ret:
+                            print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}' in I2C burst mode! Line number: {1:d}, Data: {2:s}".\
+                                format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
+                            return -1
+                        # Clear burst data after sending.
+                        burstData = []
+                # Slower step by step mode.
+                else:
+                    # Set the page register with the upper byte of the 2-byte address.
+                    ret = self.i2cDevice.write([0x01, pageByte])
+                    # Send second byte of the addresse and the data byte.
+                    ret = self.i2cDevice.write([adrByte, dataByte])
+                    if ret:
+                        print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}'! Line number: {1:d}, Data: {2:s}".\
+                            format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
+                        return -1
         return 0
 
     # Return the name of a register address.
