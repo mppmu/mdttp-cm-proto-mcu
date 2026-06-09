@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 28 Mar 2020
-# Rev.: 08 Jun 2026
+# Rev.: 09 Jun 2026
 #
 # Python class for using the I2C ports of the TM4C1290NCPDT MCU.
 #
@@ -126,7 +126,7 @@ class McuI2C:
             if self.debugLevel >= 1:
                 print(self.prefixError + "At least one data byte must be provided!")
             return -1
-        cmd = "i2c-bw {0:d} 0x{1:02x} 0x{2:01x}".format(self.port, slaveAddr & 0x7f)
+        cmd = "i2c-bw {0:d} 0x{1:02x}".format(self.port, slaveAddr & 0x7f)
         for block in burstDataWr:
             for datum in block:
                 cmd += " 0x{0:02x}".format(datum & 0xff)

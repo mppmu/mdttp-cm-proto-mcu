@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 08 Jun 2026
+# Rev.: 09 Jun 2026
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -813,7 +813,7 @@ class MdtTp_CM:
         print("Initialitzing {0:s} on I2C port {1:d} with register map file `{2:s}'.".\
             format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, regMapFile))
         i2cDevice.debugLevel = self.debugLevel
-        ret = i2cDevice.config_file(fileRegMapName=regMapFile, burstMode=true)
+        ret = i2cDevice.config_file(fileRegMapName=regMapFile, burstMode=True)
         if ret != 0:
             print(self.prefixError + "Could not config clock chip!")
         return ret
