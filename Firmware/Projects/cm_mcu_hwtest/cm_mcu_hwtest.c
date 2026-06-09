@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 08 Jun 2028
+// Rev.: 09 Jun 2026
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -64,7 +64,7 @@ tUartUi *g_psUartUi;
 // Initialize hardware, get and process commands.
 int main(void)
 {
-    char pcUartStr[UI_STR_BUF_SIZE];
+    static char pcUartStr[UI_STR_BUF_SIZE];
     char *pcUartCmd;
     char *pcUartParam;
 
