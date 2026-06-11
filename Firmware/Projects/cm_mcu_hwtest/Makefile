@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 03 Jun 2022
-# Rev.: 20 Sep 2022
+# Rev.: 11 Jun 2026
 #
 # Makefile for the firmware running on the ATLAS MDT Trigger Processor (TP)
 # Command Module (CM) prototype MCU.
@@ -108,6 +108,11 @@ CFLAGSgcc=-DTARGET_IS_TM4C129_RA2
 # Minicom configuration.
 MINICOM_CONFIG = cm_mcu
 
+# Configuration for sflash utility.
+SFLASH_DEVICE       = /dev/ttyUL1
+SFLASH_BAUD_RATE    = 115200
+SFLASH_PACKET_SIZE  = 252
+
 
 
 # ********** Compiler configuration. **********
@@ -190,13 +195,13 @@ exec: install
 flash: install
 
 install: all ${COMPILER} ${COMPILER}/$(PROJECT).axf ${COMPILER}/$(PROJECT).bin
-# Offest 0x4000 for boot loader.
+	# Offest 0x4000 for boot loader.
 #	@$(LM4FLASH) -E -v -S 0x4000 $(COMPILER)/$(PROJECT).bin
 	@$(LM4FLASH) -E -S 0x4000 $(COMPILER)/$(PROJECT).bin
 
 sflash: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin $(SFLASH)
-# Offest 0x4000 for boot loader.
-	@$(SFLASH) -c /dev/ttyUL1 -p 0x4000 -b 115200 -d -s 252 $(COMPILER)/$(PROJECT).bin
+	# Offest 0x4000 for boot loader.
+	@$(SFLASH) -c $(SFLASH_DEVICE) -p 0x4000 -b $(SFLASH_BAUD) -d -s $(SFLASH_PACKET_SIZE) $(COMPILER)/$(PROJECT).bin
 
 $(SFLASH):
 	@$(CD) $(shell $(DIRNAME) $(SFLASH)) && $(MAKE)
