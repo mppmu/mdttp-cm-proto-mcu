@@ -1,14 +1,14 @@
 Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 =======================================================================
-Auth: M. Fras, Electronics Division, MPI for Physics, Munich
-Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
-Date: 06 Oct 2022
-Rev.: 11 Mar 2023
+Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
+Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
+Date: 06 Oct 2022  
+Rev.: 11 Mar 2023  
 
 
 
 Firmware Versions
-=================
+-----------------
 * 0.0.1 - 07 Jun 2022
   - Initial version with support for GPIOs, I2C and UART.
 * 0.0.2 - 11 Aug 2022
