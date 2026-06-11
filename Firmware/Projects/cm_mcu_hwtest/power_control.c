@@ -2,10 +2,12 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 06 Oct 2022
+// Rev.: 10 Jun 2026
 //
 // Power control functions for the hardware test firmware running on the ATLAS
 // MDT Trigger Processor (TP) Command Module (CM) prototype MCU.
+//
+// See detailed information in power_control.h!
 //
 
 
@@ -86,7 +88,7 @@ void PowerControlHelp(void)
 // Power control for all power domains.
 int PowerControl_All(bool bPowerSet, uint32_t ui32PowerVal)
 {
-    uint32_t ui32GpioGet;
+    uint32_t ui32GpioGet = 0, ui32GpioSet = 0;
     int status;
 
     // Get the power status of all power domains.
@@ -122,6 +124,19 @@ int PowerControl_All(bool bPowerSet, uint32_t ui32PowerVal)
             status = PowerControl_ClockMisc(bPowerSet, ui32PowerVal);
             if (status) return status;
         }
+        // If all power domains are switched off, also deactivate the LTC2977 power managers.
+        if (ui32PowerVal == 0) {
+            // Deactivate the LTC2977 power managers.
+            ui32GpioGet = GpioGet_PowerCtrl();
+            ui32GpioSet = ui32GpioGet & (~POWER_PM_ACTIVE);
+            GpioSet_PowerCtrl(ui32GpioSet);
+            // Check if the settings are correct.
+            ui32GpioGet = GpioGet_PowerCtrl();
+            if (ui32GpioGet != ui32GpioSet) {
+                UARTprintf("%s: Could not deactivate the LTC2977 power managers.\n", UI_STR_ERROR);
+                return -1;
+            }
+        }
     }
 
     return 0;
@@ -137,7 +152,7 @@ int PowerControl_ClockMisc(bool bPowerSet, uint32_t ui32PowerVal)
     // Get the power status of the clock and miscellaneous domain.
     if (!bPowerSet) {
         ui32GpioGet = GpioGet_PowerCtrl();
-        if ((ui32GpioGet & POWER_CLK_MISC) == POWER_CLK_MISC) {
+        if ((ui32GpioGet & (POWER_PM_ACTIVE | POWER_CLK_MISC)) == (POWER_PM_ACTIVE | POWER_CLK_MISC)) {
             UARTprintf("%s: The clock and miscellaneous power is completely ON. GPIO power = 0x%02x", UI_STR_OK, ui32GpioGet);
             return 0;
         } else if ((ui32GpioGet & POWER_CLK_MISC) == 0) {
@@ -167,9 +182,15 @@ int PowerControl_ClockMisc(bool bPowerSet, uint32_t ui32PowerVal)
         }
     // Power up the clock and miscellaneous domain.
     } else {
+        // Activate the LTC2977 power managers.
+        ui32GpioGet = GpioGet_PowerCtrl();
+        ui32GpioSet = ui32GpioGet | POWER_PM_ACTIVE;
+        GpioSet_PowerCtrl(ui32GpioSet);
+        // Switch on the CLK_MISC power.
         ui32GpioGet = GpioGet_PowerCtrl();
         ui32GpioSet = ui32GpioGet | POWER_CLK_MISC;
         GpioSet_PowerCtrl(ui32GpioSet);
+        // Check if the settings are correct.
         ui32GpioGet = GpioGet_PowerCtrl();
         if (ui32GpioGet != ui32GpioSet) {
             UARTprintf("%s: Could not power up the clock and miscellaneous domain.\n", UI_STR_ERROR);
@@ -190,7 +211,7 @@ int PowerControl_FPGA(bool bPowerSet, uint32_t ui32PowerVal)
     // Get the power status of the FPGA.
     if (!bPowerSet) {
         ui32GpioGet = GpioGet_PowerCtrl();
-        if ((ui32GpioGet & POWER_FPGA) == POWER_FPGA) {
+        if ((ui32GpioGet & (POWER_PM_ACTIVE | POWER_FPGA)) == (POWER_PM_ACTIVE | POWER_FPGA)) {
             UARTprintf("%s: The FPGA power is completely ON. GPIO power = 0x%02x", UI_STR_OK, ui32GpioGet);
             return 0;
         } else if ((ui32GpioGet & POWER_FPGA) == 0) {
@@ -234,9 +255,15 @@ int PowerControl_FPGA(bool bPowerSet, uint32_t ui32PowerVal)
           return -1;
         }
         // Then power up the FPGA IO voltage.
+        // Activate the LTC2977 power managers.
+        ui32GpioGet = GpioGet_PowerCtrl();
+        ui32GpioSet = ui32GpioGet | POWER_PM_ACTIVE;
+        GpioSet_PowerCtrl(ui32GpioSet);
+        // Switch on the CLK_MISC power.
         ui32GpioGet = GpioGet_PowerCtrl();
         ui32GpioSet = ui32GpioGet | POWER_FPGA_IO;
         GpioSet_PowerCtrl(ui32GpioSet);
+        // Check if the settings are correct.
         ui32GpioGet = GpioGet_PowerCtrl();
         if (ui32GpioGet != ui32GpioSet) {
             UARTprintf("%s: Could not power up the FPGA IO voltage.\n", UI_STR_ERROR);
@@ -257,7 +284,7 @@ int PowerControl_FireFly(bool bPowerSet, uint32_t ui32PowerVal)
     // Get the power status of the FireFly domain.
     if (!bPowerSet) {
         ui32GpioGet = GpioGet_PowerCtrl();
-        if ((ui32GpioGet & POWER_FIREFLY) == POWER_FIREFLY) {
+        if ((ui32GpioGet & (POWER_PM_ACTIVE | POWER_FIREFLY)) == (POWER_PM_ACTIVE | POWER_FIREFLY)) {
             UARTprintf("%s: The FireFly power is completely ON. GPIO power = 0x%02x", UI_STR_OK, ui32GpioGet);
             return 0;
         } else if ((ui32GpioGet & POWER_FIREFLY) == 0) {
@@ -281,9 +308,15 @@ int PowerControl_FireFly(bool bPowerSet, uint32_t ui32PowerVal)
         }
     // Power up the FireFly domain.
     } else {
+        // Activate the LTC2977 power managers.
+        ui32GpioGet = GpioGet_PowerCtrl();
+        ui32GpioSet = ui32GpioGet | POWER_PM_ACTIVE;
+        GpioSet_PowerCtrl(ui32GpioSet);
+        // Switch on the FIREFLY power.
         ui32GpioGet = GpioGet_PowerCtrl();
         ui32GpioSet = ui32GpioGet | POWER_FIREFLY;
         GpioSet_PowerCtrl(ui32GpioSet);
+        // Check if the settings are correct.
         ui32GpioGet = GpioGet_PowerCtrl();
         if (ui32GpioGet != ui32GpioSet) {
             UARTprintf("%s: Could not power up the FireFly domain.\n", UI_STR_ERROR);
