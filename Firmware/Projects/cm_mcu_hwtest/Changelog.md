@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
 Date: 06 Oct 2022  
-Rev.: 11 Mar 2023  
+Rev.: 12 Mar 2023  
 
 
 
@@ -44,4 +44,5 @@ Firmware Versions
   - Improved the function to jump into the bootloader.
   - Corrected the control of the four logical power domains (FPGA core, FPGA
     IO, clock/misc, FireFly).
+  - Removed redundant code in SM-CM interface (sm_cm.c).
 

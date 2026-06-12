@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 07 Jun 2022
+// Rev.: 12 Jun 2026
 //
 // Functions for interfacing the Service Module and the Command Module in the
 // hardware test firmware running on the ATLASfirmware running on the ATLAS MDT
@@ -53,9 +53,6 @@ void SmCm_IntHandlerSmPowerEna(void)
         if (GpioGet_SmPowerEna()) {
             // Turn on the CM power domains.
             PowerControl_All(true, 1);
-            PowerControl_ClockMisc(true, 1);
-            PowerControl_FPGA(true, 1);
-            PowerControl_FireFly(true, 1);
             // Drive the CM_READY output high.
             GpioSet_CmReady(1);
             #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
@@ -65,9 +62,6 @@ void SmCm_IntHandlerSmPowerEna(void)
         } else {
             // Turn off the CM power domains.
             PowerControl_All(true, 0);
-//            PowerControl_ClockMisc(true, 0);
-//            PowerControl_FPGA(true, 0);
-//            PowerControl_FireFly(true, 0);
             // Drive the CM_READY output low.
             GpioSet_CmReady(0);
             #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
