@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 01 Aug 2022
-# Rev.: 23 Jan 2023
+# Rev.: 12 Jun 2026
 #
 # Python class for communicating with the MCP9902 low-temperature remote diode
 # sensor IC.
@@ -183,8 +183,13 @@ class I2C_MCP9902:
         retCfg, valueCfg = self.read_reg(0x03)  # Educated guess: The configuration register with address 0x03 is for the internal diode.
         if retCfg:
             return retCfg, -128.0
+        print(f"Sensor configuration = {valueCfg}")
         retInt, valueInt = self.read_reg(0x00)
         retFract, valueFract = self.read_reg(0x29)
+        if self.debugLevel >= 2:
+            print(self.prefixDebugDevice + "Sensor configuration of internal diode: 0x{0:02x}".format(valueCfg))
+            print(self.prefixDebugDevice + "Raw integer value of internal diode: 0x{0:02x}".format(valueInt))
+            print(self.prefixDebugDevice + "Raw fractional value of internal diode: 0x{0:02x}".format(valueFract))
         # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
         if valueCfg & 0x04:
             temperature = self.raw_to_temperature_extended(valueInt, valueFract)
@@ -201,6 +206,10 @@ class I2C_MCP9902:
             return retCfg, -128.0
         retInt, valueInt = self.read_reg(0x01)
         retFract, valueFract = self.read_reg(0x10)
+        if self.debugLevel >= 2:
+            print(self.prefixDebugDevice + "Sensor configuration of external diode: 0x{0:02x}".format(valueCfg))
+            print(self.prefixDebugDevice + "Raw integer value of external diode: 0x{0:02x}".format(valueInt))
+            print(self.prefixDebugDevice + "Raw fractional value of external diode: 0x{0:02x}".format(valueFract))
         # Check if the measurement range is default (0 .. 127 °C) or extended (-64 .. 191 °C).
         if valueCfg & 0x04:
             temperature = self.raw_to_temperature_extended(valueInt, valueFract)

@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 29 Apr 2020
-# Rev.: 09 Sep 2022
+# Rev.: 12 Jun 2026
 #
 # Python class for communicating with Silicon Labs Si5341/40 and Si5345/44/42
 # devices.
@@ -55,13 +55,16 @@ class I2C_Si53xx:
         self.prefixErrorDevice = self.prefixError + self.deviceName + ": "
 
 
+
     def check_adr(self, regAdr):
         if regAdr < self.hwAdrMin or regAdr > self.hwAdrMax:
             print(self.prefixErrorDevice + "Data word register value {0:d} out of valid range {1:d}..{2:d}!".\
                 format(regAdr, self.hwAdrMin, self.hwAdrMax))
             return -1
         return 0
-    
+
+
+
     # Load the configuration of an Si53xx IC from a register map file produced
     # with the ClockBuilder Pro software.
     def config_file(self, fileRegMapName, burstMode):
@@ -155,6 +158,8 @@ class I2C_Si53xx:
                         return -1
         return 0
 
+
+
     # Return the name of a register address.
     def adr_to_name(self, regAdr):
         regName = "*other/unknown*"
@@ -171,7 +176,9 @@ class I2C_Si53xx:
         elif regAdr == 0x13:
             regName = "Sticky Status reg: LOL_FLG"
         return regName
-    
+
+
+
     # Read a register value.
     def read_reg(self, regAdr):
         self.i2cDevice.debugLevel = self.debugLevel
@@ -234,7 +241,9 @@ class I2C_Si53xx:
         string += "\t" + str(OOF)
         string += "\t\t" + str(LOSIN)
         return 0, string
-    
+
+
+
     # Remember they are sticky, so you are supposed to set them to 0 after configuration
     def print_sticky_status_str(self):
         ret, s_stats, s_LOSIN, s_OOF, s_LOL= self.read_sticky_status_regs()

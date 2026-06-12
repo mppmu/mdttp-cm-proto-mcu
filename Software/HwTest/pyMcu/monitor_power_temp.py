@@ -57,16 +57,14 @@ def run_mcu(command):
     else:        
         pyMcu_path = "pyMcuCm.py"
 
-    if args.no_service:
-        mcu_client_cmd = ""
-    else:
-        mcu_client_cmd = "mcu_client"
+    cmd = [str(pyMcu_path), "-d", SERIAL_DEVICE, "-v", VERBOSITY, "-c", command]
+    if not args.no_service:
+        cmd = ["mcu_client"] + cmd
 
     result = subprocess.run(
-        [str(mcu_client_cmd), str(pyMcu_path), "-d", SERIAL_DEVICE, "-v", VERBOSITY, "-c", command],
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd=script_dir,
     )
     return result.stdout.decode("utf-8")
 

@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 09 Jun 2026
+# Rev.: 12 Jun 2026
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -25,8 +25,8 @@ import I2C_MCP9902
 import I2C_PCA9535
 import I2C_PCA9545
 import I2C_Si53xx
-import I2C_FireFly
 import I2C_Si598
+import I2C_FireFly
 
 
 
@@ -248,7 +248,8 @@ class MdtTp_CM:
                 print(self.prefixDebug + "{0:s} manufacturer ID: 0x{1:02x}".format(sensor.deviceName, sensor.read_manufacturer_id()[1]))
                 print(self.prefixDebug + "{0:s} revision: 0x{1:02x}".format(sensor.deviceName, sensor.read_revision()[1]))
             print("Board {0:d}                  - {1:15s}: {2:6.3f} degC".format(sensorNum, sensor.deviceName, sensor.read_temp_int()[1]))
-            print("Board {0:d}                  - {1:15s}: status 0x{2:d}".format(sensorNum, sensor.deviceName, sensor.read_status()[1]))
+            if self.debugLevel >= 2:
+                print("Board {0:d}                  - {1:15s}: status 0x{2:02x}".format(sensorNum, sensor.deviceName, sensor.read_status()[1]))
             sensorNum += 1
 
 
@@ -617,6 +618,7 @@ class MdtTp_CM:
             print(self.prefixStatus + "{0:d}: {1:23s}: {2:5.2f} V".format(channel, measurementNames[channel], data[4][channel]))
             print(self.prefixStatus + "{0:d}: {1:23s}: {2:5.2f} A".format(channel, measurementNames[channel], data[5][channel]))
             if debugLevel >= 1:
+                print(self.prefixStatus + "{0:d}: {1:7s}: {2:5.2f} V".format(channel, "VOUT_FAULT_LIMIT", data[6][channel]))
                 print(self.prefixStatus + "{0:d}: {1:7s}: {0:d} ".format(channel, "VOUT_FAULT_RESPONSE", data[7][channel]))
                 print(self.prefixStatus + "STATUS_WORD: " + str(data[8][channel]))
                 print(self.prefixStatus + "status_mfr_specific: " + str(data[9][channel]))
@@ -846,6 +848,8 @@ class MdtTp_CM:
         print ("New frequency is {}".format(freq))
         return 0
 
+
+
     # Program a single Silicon Labs clock IC from a register map file by its name.
     def clk_prog_device_by_name(self, clkDevName, regMapFile):
         clkDeviceList = [self.i2cDevice_IC1_Si5345A,
@@ -871,8 +875,8 @@ class MdtTp_CM:
             for dev in clkDeviceList:
                 print(dev.deviceName.split(' ')[0] + " ", end='')
             return -1
-        if self.debugLevel >= 1:
-            print ("Name is " + clkDevice.deviceName.split(' ')[0] + ".")
+        if self.debugLevel >= 2:
+            print (self.prefixDebug + "Programming clock device '{0:s}'.".format(clkDevName))
         if "IC11" == clkDevice.deviceName.split(' ')[0]:
             clkDevice.clk_freq = regMapFile
             return self.clk_prog_ic11(clkDevice)
@@ -896,6 +900,8 @@ class MdtTp_CM:
         self.clk_prog_device_file(self.i2cDevice_IC10_Si5345A)
         self.clk_prog_device_file(self.i2cDevice_IC12_Si5345A)
 
+
+
     # Get status bits for a single clock chip.
     def clk_print_status(self, i2cDevice):
         i2cDevice.debugLevel = self.debugLevel
@@ -910,13 +916,15 @@ class MdtTp_CM:
             print(self.prefixError + "Failed reading status of {0:s} on I2C port {1:d} ".\
             format(i2cDevice.deviceName, i2cDevice.mcuI2C.port))
         else:
-            print("Reading status of {0:s} on I2C port {1:d} is {2:s}".\
+            print("Status read from {0:s} on I2C port {1:d}: {2:s}".\
             format(i2cDevice.deviceName, i2cDevice.mcuI2C.port, status))
+
+
 
     def clk_print_status_all(self):
         if self.debugLevel >= 1:
-            print(self.prefixDebug + "printing status for all clock chips.")
-        print("status are:                                        \tSYSINCAL LOSXAXB LOL \tOOF\tLOSIN")
+            print(self.prefixDebug + "Printing status for all clock chips.")
+        print("Status are:                                        \tSYSINCAL LOSXAXB LOL \tOOF\tLOSIN")
         self.clk_print_status(self.i2cDevice_IC1_Si5345A)
         self.clk_print_status(self.i2cDevice_IC2_Si5345A)
         self.clk_print_status(self.i2cDevice_IC3_Si5345A)
