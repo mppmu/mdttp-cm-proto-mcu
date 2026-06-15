@@ -4,7 +4,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Jul 2022
-# Rev.: 12 Jun 2026
+# Rev.: 15 Jun 2026
 #
 # Python class for accessing the ATLAS MDT Trigger Processor (TP) Command
 # Module (CM) Prototype via the TI Tiva TM4C1290 MCU UART.
@@ -166,10 +166,10 @@ class MdtTp_CM:
     # Read the serial number of the board.
     def serial_number(self):
         if self.debugLevel >= 1:
-            print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_IC22_DS28CM00.deviceName)
+            print(self.prefixDebug + "Reading the serial number from {0:s}.".format(self.i2cDevice_IC22_DS28CM00.deviceName))
         ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_IC22_DS28CM00.read_all()
         if ret:
-            print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_IC22_DS28CM00.deviceName)
+            print(self.prefixError + "Error reading the serial number from {0:s}!".format(self.i2cDevice_IC22_DS28CM00.deviceName))
             return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
@@ -180,13 +180,15 @@ class MdtTp_CM:
             return 1
         return 0
 
-    # Read the serial number of the SM.
-    def serial_number_sm(self):
+
+
+    # Read the serial number of the SM dummy.
+    def serial_number_sm_dummy(self):
         if self.debugLevel >= 1:
-            print(self.prefixDebug + "Reading the serial number from {0:s}.", self.i2cDevice_SM_DS28CM00.deviceName)
-        ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_SM_DS28CM00.read_all()
+            print(self.prefixDebug + "Reading the serial number from {0:s}.".format(self.i2cDevice_SM_DUMMY_DS28CM00.deviceName))
+        ret, deviceFamilyCode, serialNumber, crc, crcError = self.i2cDevice_SM_DUMMY_DS28CM00.read_all()
         if ret:
-            print(self.prefixError + "Error reading the serial number from {0:s}!", self.i2cDevice_SM_DS28CM00.deviceName)
+            print(self.prefixError + "Error reading the serial number from {0:s}!".format(self.i2cDevice_SM_DUMMY_DS28CM00.deviceName))
             return ret
         print("Device family code: 0x{0:02x}".format(deviceFamilyCode))
         print("Serial number: 0x{0:012x}".format(serialNumber))
@@ -289,10 +291,10 @@ class MdtTp_CM:
         self.i2cDevice_IC22_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[4], 0x50, "IC22 (DS28CM00)")
         self.i2cDevice_IC22_DS28CM00.debugLevel = self.debugLevel
 
-        # SM: DS28CM00 silicon serial number IC.
+        # SM dummy: DS28CM00 silicon serial number IC.
         # I2C port 7, slave address 0x50.
-        self.i2cDevice_SM_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[7], 0x50, "SM (DS28CM00)")
-        self.i2cDevice_SM_DS28CM00.debugLevel = self.debugLevel
+        self.i2cDevice_SM_DUMMY_DS28CM00 = I2C_DS28CM00.I2C_DS28CM00(self.mcuI2C[7], 0x50, "SM dummy (DS28CM00)")
+        self.i2cDevice_SM_DUMMY_DS28CM00.debugLevel = self.debugLevel
 
         # MCP9902 low-temperature remote diode sensor IC.
         # IC60: I2C port 4, slave address 0x3c, VU13P temperature.
