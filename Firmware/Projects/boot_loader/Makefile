@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Aug 2020
-# Rev.: 27 Aug 2020
+# Rev.: 17 Jun 2026
 #
 # Makefile for the serial boot loader running on the TI Tiva TM4C1290 MCU on
 # the ATLAS MDT Trigger Processor (TP) Command Module (CM).
@@ -133,6 +133,7 @@ MAKE            = make
 MKDIR           = mkdir
 MSGVIEW         = msgview
 MV              = mv
+OPENOCD         = openocd
 SLEEP           = sleep
 SH              = sh -c
 RM              = rm
@@ -177,10 +178,16 @@ exec: install
 
 flash: install
 
+flash-openocd: install-openocd
+
 install: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin
-# Program the boot loader at the beginning of the flash to address 0x0.
+	# Program the boot loader at the beginning of the flash to address 0x0.
 #	@$(LM4FLASH) -E -v -S 0x0 $(COMPILER)/$(PROJECT).bin
 	@$(LM4FLASH) -E -S 0x0 $(COMPILER)/$(PROJECT).bin
+
+install-openocd: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin
+    # Program the boot loader at the beginning of the flash to address 0x0.
+	@$(OPENOCD) -f interface/ti-icdi.cfg -c "transport select hla_jtag" -f target/stellaris.cfg -c "program $(COMPILER)/$(PROJECT).bin 0x0 verify reset exit"
 
 $(COMPILER)/$(PROJECT).axf: $(OBJS) $(LIBS)
 

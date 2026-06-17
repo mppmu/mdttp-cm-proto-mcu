@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 03 Jun 2022
-# Rev.: 11 Jun 2026
+# Rev.: 17 Jun 2026
 #
 # Makefile for the firmware running on the ATLAS MDT Trigger Processor (TP)
 # Command Module (CM) prototype MCU.
@@ -148,6 +148,7 @@ MAKE            = make
 MKDIR           = mkdir
 MSGVIEW         = msgview
 MV              = mv
+OPENOCD         = openocd
 RM              = rm
 SFLASH          = ../../../Software/$(subst ../,,$(TIVAWARE))/tools/sflash/sflash
 SH              = sh -c 
@@ -194,10 +195,16 @@ exec: install
 
 flash: install
 
+flash-openocd: install-openocd
+
 install: all ${COMPILER} ${COMPILER}/$(PROJECT).axf ${COMPILER}/$(PROJECT).bin
 	# Offest 0x4000 for boot loader.
 #	@$(LM4FLASH) -E -v -S 0x4000 $(COMPILER)/$(PROJECT).bin
 	@$(LM4FLASH) -E -S 0x4000 $(COMPILER)/$(PROJECT).bin
+
+install-openocd: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin
+	# Offest 0x4000 for boot loader.
+	@$(OPENOCD) -f interface/ti-icdi.cfg -c "transport select hla_jtag" -f target/stellaris.cfg -c "program $(COMPILER)/$(PROJECT).bin 0x4000 verify reset exit"
 
 sflash: all $(COMPILER) $(COMPILER)/$(PROJECT).axf $(COMPILER)/$(PROJECT).bin $(SFLASH)
 	# Offest 0x4000 for boot loader.
