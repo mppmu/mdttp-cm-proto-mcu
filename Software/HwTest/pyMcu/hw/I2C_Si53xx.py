@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 29 Apr 2020
-# Rev.: 12 Jun 2026
+# Rev.: 19 Jun 2026
 #
 # Python class for communicating with Silicon Labs Si5341/40 and Si5345/44/42
 # devices.
@@ -156,6 +156,13 @@ class I2C_Si53xx:
                         print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}'! Line number: {1:d}, Data: {2:s}".\
                             format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
                         return -1
+            # Send remaining data in burst mode.
+            if burstData:
+                ret = self.i2cDevice.write_burst(burstData)
+                if ret:
+                    print(self.prefixErrorDevice + "Error sending data of register map file `{0:s}' in I2C burst mode! Line number: {1:d}, Data: {2:s}".\
+                        format(fileRegMapName, fileRegMapLineCount, lineCommentRemoved))
+                    return -1
         return 0
 
 
