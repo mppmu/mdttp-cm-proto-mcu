@@ -3,7 +3,7 @@
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
 Date: 27 May 2022  
-Rev.: 27 May 2022  
+Rev.: 22 Jun 2026  
 
 
 
@@ -58,13 +58,18 @@ Rev.: 27 May 2022
     * The TM4C1294 Connected LaunchPad™ Evaluation Kit is connected to an USB
       port of the PC.
     * Its resistors R8, R10, R11, R15 and R16 are removed.
-    * Its header U6 is connected with a 10-pin 50 mil pitch flat cable to X113
-      of the CM.
-    * The jumpers X122, X123, X125 and X126 on the CM are in the correct
-      position to connect the MCU SWD pins to the header X113.
-    * By default, always download the MCU firmware with no other power source
-      provided to the CM. Alternatively, if the CM is powered with +12 V, cut
-      the pin 1 of the flat cable to avoid connecting to power supplies.
+    * Its header U6 is connected with a 10-pin 50 mil pitch flat cable to X63
+      of the CM. Make sure that pin 1 matches on both sides!
+    * The jumpers X64, X65, X66 and X67 on the CM are all in position 1-2. This
+      is the correct position to connect the MCU JTAG/SWD pins to the header
+      X63.  
+      Note: An additional jumper across X66-3 and X67-3 is harmless and can
+      remain in place.
+    * In order to download the MCU firmware, the CM must be powere with +12 V
+      either via the low speed connector X51 or the PCIe power connector
+      XPWR1.  
+      CAUTION: *Make sure to cut the pin 1 of the flat cable between the
+      programmer and the CM to avoid shorting to power supplies!*
 
 3. Install the serial boot loader.  
     The serial boot loader provides firmware updates over the UART 5, which is
@@ -87,14 +92,18 @@ Rev.: 27 May 2022
     * When the firmware download via the boot loader is finished, all 9 MCU
       user LEDs blink 3 times indicating the end of the firmware download.
 
-    Note that the UART for the boot loader can be changed to UART 3, which is
-    the front panel UART of the CM. Define
+    By default, the UART 5 is used for the boot loader, which is connected to
+    the SM SoM UART. This will be available on the SM SoM as ```/dev/ttyUL1```
+    by default.  
+    Note that the UART for the boot loader can be changed for testing,
+    development and lab usage to UART 3, which is the front panel UART of the
+    CM. Define
     ```MDTTP_CM_MCU_BL_UART_FRONTPANEL``` in the file ```bl_config.h``` to use
     UART 3 instead of UART 5 for the boot loader.
 
     Example minicom session for the serial boot loader:
     ```
-    ***** MDT-TP CM prototype MCU boot loader version 0.0.1, release date: 27 May 2022 *****
+    ***** MDT-TP CM prototype MCU boot loader version 0.0.2, release date: 03 Jun 2022 *****
 
     Press any key to enter the boot loader menu.
     5 4 3 2 1
@@ -111,7 +120,7 @@ Rev.: 27 May 2022
     
     
     
-    ***** MDT-TP CM prototype MCU boot loader version 0.0.1, release date: 27 May 2022 *****
+    ***** MDT-TP CM prototype MCU boot loader version 0.0.2, release date: 03 Jun 2022 *****
     
     Waiting for firmware data...
     ```
