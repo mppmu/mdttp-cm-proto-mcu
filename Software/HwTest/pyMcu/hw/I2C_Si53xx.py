@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 29 Apr 2020
-# Rev.: 19 Jun 2026
+# Rev.: 24 Jun 2026
 #
 # Python class for communicating with Silicon Labs Si5341/40 and Si5345/44/42
 # devices.
@@ -11,9 +11,10 @@
 
 
 import os
+import time
 import McuI2C
 import I2CDevice
-import time
+
 
 
 class I2C_Si53xx:
