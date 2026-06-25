@@ -1,12 +1,12 @@
-// File: sm_cm.c
+// File: sm_cm.h
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 03 Jun 2022
+// Rev.: 25 Jun 2026
 //
 // Header file for interfacing the Service Module and the Command Module in the
-// hardware test firmware running on the ATLASfirmware running on the ATLAS MDT
-// Trigger Processor (TP) Command Module (CM) prototype MCU.
+// hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
+// Command Module (CM) prototype MCU.
 //
 
 
