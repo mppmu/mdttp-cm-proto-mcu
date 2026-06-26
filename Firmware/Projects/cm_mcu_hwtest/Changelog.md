@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
 Date: 06 Oct 2022  
-Rev.: 12 Mar 2023  
+Rev.: 26 Jun 2026  
 
 
 
@@ -37,7 +37,7 @@ Firmware Versions
   - Changed GPIO PF0 (pin 42) driving the signal FPGA_PROG_B from push/pull to
     open drain. This requires a patch on the CM prototype V1 board: The
     pulldown resistor R180 must be removed and replaced by a pullup resistor.
-* 0.0.10 - 11 Mar 2023
+* 0.0.10 - 12 Jun 2026
   - Implemented I2C burst write command (i2c-bw) to speed up larger data
     transfers via the I2C bus like for programming the clock chips.
   - Improved the function to reset the MCU.
