@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 09 Jun 2026
+// Rev.: 26 Jun 2026
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -16,6 +16,7 @@
 #include <string.h>
 #include <strings.h>
 #include "driverlib/i2c.h"
+#include "driverlib/interrupt.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/ssi.h"
 #include "driverlib/sysctl.h"
@@ -29,6 +30,7 @@
 #include "uart_ui.h"
 #include "power_control.h"
 #include "sm_cm.h"
+#include "sm_ipmc_i2c.h"
 #include "cm_mcu_hwtest.h"
 #include "cm_mcu_hwtest_aux.h"
 #include "cm_mcu_hwtest_gpio.h"
@@ -70,6 +72,9 @@ int main(void)
 
     uint8_t ui8McuUserLeds;
 
+    // Disable all master/global interrupts at the processor level.
+    IntMasterDisable();
+
     // Setup the system clock.
     g_ui32SysClock = MAP_SysCtlClockFreqSet(SYSTEM_CLOCK_SETTINGS, SYSTEM_CLOCK_FREQ);
 
@@ -92,10 +97,15 @@ int main(void)
     SmCm_PowerHandshakingInit();
     #endif
 
+    // Initialize the I2C slave connected to the SM IPMC.
+    #ifdef I2C_SLAVE_IPMC_ENABLE
+    SmIpmcI2cInit();
+    #endif
+
     // Turn on an LED 0 (green) to indicate MCU activity.
     ui8McuUserLeds = 0;
     GpioSet_LedMcuUser(ui8McuUserLeds |= LED_USER_0_GREEN);
-    
+
     // Choose the front panel UART as UI first and check if somebody requests access.
     // Note: This must be done *before* setting up the user UARTs!
     g_psUartUi = &g_sUartUi3;     // Front-panel USB UART.
@@ -129,7 +139,7 @@ int main(void)
         g_psUartUi = &g_sUartUi5;     // SM SoC UART.
     }
     #endif  // UI_UART_SELECT
-            
+
     // Initialize the UARTs.
     g_sUart1.ui32UartClk = g_ui32SysClock;
     g_sUart1.bLoopback = true;      // Enable loopback for testing.
@@ -156,6 +166,9 @@ int main(void)
 
     GpioSet_LedMcuUser(ui8McuUserLeds |= LED_USER_1_GREEN);
 
+    // Enable all master/global interrupts at the processor level.
+    IntMasterEnable();
+
     while(1)
     {
         UARTprintf("%s", UI_COMMAND_PROMPT);
@@ -179,7 +192,7 @@ int main(void)
             JumpToBootLoader(pcUartCmd, pcUartParam);
         // GPIO based functions.
         } else if (!strcasecmp(pcUartCmd, "gpio")) {
-            GpioGetSet(pcUartCmd, pcUartParam);            
+            GpioGetSet(pcUartCmd, pcUartParam);
         // I2C based functions.
         } else if (!strcasecmp(pcUartCmd, "i2c")) {
             I2CAccess(pcUartCmd, pcUartParam);
@@ -187,6 +200,9 @@ int main(void)
             I2CBurstWrite(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "i2c-det")) {
             I2CDetect(pcUartCmd, pcUartParam);
+        // Data provided to the SM IPMC via I2C where the MCU acts as I2C slave.
+        } else if (!strcasecmp(pcUartCmd, "i2c-sm")) {
+            SmIpmcI2cData(pcUartCmd, pcUartParam);
         // QSSI based functions.
         } else if (!strcasecmp(pcUartCmd, "qssi")) {
             QssiAccess(pcUartCmd, pcUartParam);
@@ -199,7 +215,7 @@ int main(void)
             UartSetup(pcUartCmd, pcUartParam);
         // Power control.
         } else if (!strcasecmp(pcUartCmd, "power")) {
-            PowerControl(pcUartCmd, pcUartParam);            
+            PowerControl(pcUartCmd, pcUartParam);
         // Unknown command.
         } else {
             UARTprintf("ERROR: Unknown command `%s'.", pcUartCmd);
@@ -226,6 +242,7 @@ void Help(void)
     UARTprintf("  i2c-bw  PORT SLV-ADR DATA [,DATA]   I2C burst write. Send chunks of DATA.\n");
     UARTprintf("  i2c-det PORT [MODE]                 I2C detect devices (MODE: 0 = auto,\n");
     UARTprintf("                                          1 = quick command, 2 = read).\n");
+    UARTprintf("  i2c-sm  [DATA]                      Get/Set the data for the SM IPMC via I2C.");
     UARTprintf("  info                                Show information about this firmware.\n");
     UARTprintf("  qssi    PORT MODE RW END NUM|DATA   QSSI/QSPI access (MODE: 0 = SSI, 1 = QSSI;\n");
     UARTprintf("                                      END: 0 = no, 1 = yes; RW: 0 = wr, 1 = rd).\n");

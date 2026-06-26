@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 25 Jun 2026
+// Rev.: 26 Jun 2026
 //
 // Functions for interfacing the Service Module and the Command Module in the
 // hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
@@ -34,6 +34,17 @@ int SmCm_PowerHandshakingInit(void)
 {
     // Register interrupt routine for the SM_PWR_ENA input.
     GpioInitIntr(&g_sGpio_SmPowerEna, SmCm_IntHandlerSmPowerEna);
+
+    // Check if the handshaking between SM and CM is enabled.
+    #ifndef SM_CM_POWER_HANDSHAKING_ENABLE
+    #warning "The SM-CM handshaking is turned OFF! Turn it ON for normal operation!"
+    #endif
+
+    // Check if the message for the SM-CM handshaking are enabled.
+    #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
+    #warning "Messages for the SM-CM handshaking are turned ON."
+    #warning "This is only for testing and debugging. Turn it OFF for normal operation!"
+    #endif
 
     return 0;
 }
@@ -71,7 +82,9 @@ void SmCm_IntHandlerSmPowerEna(void)
         // Update the status LEDs.
         LedCmStatusUpdated();
         // Show new command prompt.
+        #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
         UARTprintf("%s", UI_COMMAND_PROMPT);
+        #endif
     }
 }
 

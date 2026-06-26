@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 03 Jun 2022
-# Rev.: 17 Jun 2026
+# Rev.: 26 Jun 2026
 #
 # Makefile for the firmware running on the ATLAS MDT Trigger Processor (TP)
 # Command Module (CM) prototype MCU.
@@ -32,6 +32,7 @@ SOURCE_FILES  = cm_mcu_hwtest.c                     \
                 cm_mcu_hwtest_uart.c                \
                 power_control.c                     \
                 sm_cm.c                             \
+                sm_ipmc_i2c.c                       \
                 startup_gcc.c                       \
                 $(COMMON_LINK)/uart_ui.c            \
                 $(COMMON_LINK)/hw/gpio/gpio.c       \
@@ -50,6 +51,7 @@ HEADER_FILES  = cm_mcu_hwtest.h                     \
                 cm_mcu_hwtest_uart.h                \
                 power_control.h                     \
                 sm_cm.h                             \
+                sm_ipmc_i2c.h                       \
                 $(COMMON_LINK)/uart_ui.h            \
                 $(COMMON_LINK)/hw/gpio/gpio.h       \
                 $(COMMON_LINK)/hw/gpio/gpio_pins.h  \

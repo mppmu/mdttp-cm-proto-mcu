@@ -45,4 +45,8 @@ Firmware Versions
   - Corrected the control of the four logical power domains (FPGA core, FPGA
     IO, clock/misc, FireFly).
   - Removed redundant code in SM-CM interface (sm_cm.c).
+* 0.0.11 - 26 Jun 2026
+  - Added I2C slave function on I2C bus 7 which is connected to the SM IPMC.
+  - Switched off the messages on the UART for the SM-CM interface.
+  - Added warning messages during compile time for non-standard configurations.
 
