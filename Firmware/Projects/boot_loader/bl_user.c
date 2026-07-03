@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 03 Jun 2022
+// Rev.: 03 Jul 2026
 //
 // User functions of the boot loader running on the ATLAS MDT Trigger Processor
 // (TP) Command Module (CM) prototype MCU.
@@ -73,10 +73,28 @@ void UARTprint(uint32_t ui32UartBase, const char* pcStr)
 // Print boot loader information.
 void UARTprintBlInfo(uint32_t ui32UartBase)
 {
-    UARTprint(ui32UartBase, "\r\n\r\n");
+    UARTprint(ui32UartBase, "\r\n");
+    // Show version information.
     UARTprint(ui32UartBase, "\r\n***** MDT-TP CM prototype MCU " BL_NAME " version " BL_VERSION ", release date: " BL_RELEASEDATE " *****\r\n");
+
+    // Show build information.
+    UARTprint(ui32UartBase, "It was compiled using gcc " __VERSION__ " at " __TIME__ " on " __DATE__ ".\r\n");
+
+    // Show warnings if the configuration deviates from the standard.
+    #if defined(MDTTP_CM_MCU_BL_UART_FRONTPANEL)
+    UARTprint(ui32UartBase, "\r\n");
+    UARTprint(ui32UartBase, "WARNING: This firmware was built using a non-standard configuration!\r\n");
+    UARTprint(ui32UartBase, "WARNING: It deviates in the following points:\r\n");
+    #endif
+    #ifdef MDTTP_CM_MCU_BL_UART_FRONTPANEL
+    #warning "The serial boot loader is using the CM front panel mini USB port!"
+    #warning "Firmware updates from the SM SoM will *NOT BE POSSIBLE*!"
+    UARTprint(ui32UartBase, "WARNING: - The serial boot loader is using the CM front panel mini USB port!\r\n");
+    UARTprint(ui32UartBase, "WARNING:   Firmware updates from the SM SoM will *NOT BE POSSIBLE*!\r\n");
+    #endif
+
     // Wait some time for the UART to send out the message.
-    DelayUs(1e4);
+    DelayUs(1e5);
 }
 
 
@@ -135,6 +153,11 @@ int BL_UserMenu(uint32_t ui32UartBase)
             case 'H':
                 BL_UserMenuHelp(ui32UartBase);
                 break;
+            case 'i':
+            case 'I':
+                UARTprintBlInfo(ui32UartBase);
+                UARTprint(ui32UartBase, "\r\n");
+                break;
             case 'b':
             case 'B':
                 UARTprint(ui32UartBase, "Booting the MCU main firmware.\r\n\r\n");
@@ -143,7 +166,7 @@ int BL_UserMenu(uint32_t ui32UartBase)
                 return 0;
             case 'f':
             case 'F':
-//                UARTprint(ui32UartBase, "Waiting for firmware data...\r\n");
+                UARTprint(ui32UartBase, "Waiting for firmware data...\r\n");
                 // Wait some time for the UART to send out the message.
                 DelayUs(1e4);
                 return 1;
@@ -172,6 +195,7 @@ int BL_UserMenuHelp(uint32_t ui32UartBase)
 {
     UARTprint(ui32UartBase, "\r\nAvailable commands:\r\n");
     UARTprint(ui32UartBase, "h   Show this help text.\r\n");
+    UARTprint(ui32UartBase, "i   Show boot loader information.\r\n");
     UARTprint(ui32UartBase, "b   Start normal boot process.\r\n");
     UARTprint(ui32UartBase, "f   Force MCU firmware download via the serial boot loader.\r\n");
     UARTprint(ui32UartBase, "r   Reboot the MCU.\r\n");

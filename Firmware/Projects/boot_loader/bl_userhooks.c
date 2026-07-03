@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 03 Jun 2022
+// Rev.: 03 Jul 2026
 //
 // User hook functions of the boot loader running on the ATLAS MDT Trigger
 // Processor (TP) Command Module (CM) MCU.
@@ -53,6 +53,7 @@ void BL_Reinit(void)
     UserHwInit();
 
     // Show boot loader info.
+    UARTprint(UARTx_BASE, "\r\n");
     UARTprintBlInfo(UARTx_BASE);
 
     UARTprint(UARTx_BASE, "\r\nWaiting for firmware data...\r\n");
@@ -132,10 +133,10 @@ unsigned long BL_UserCheckUpdateHook(void)
 
         // Work-around: Use code copied from the EK-TM4C1294XL boot_demo1 example.
         if (BL_UserMenu(UARTx_BASE)) {
-            // We must make sure we turn off SysTick and its interrupt before entering 
+            // We must make sure we turn off SysTick and its interrupt before entering
             // the boot loader!
-            MAP_SysTickIntDisable(); 
-            MAP_SysTickDisable(); 
+            MAP_SysTickIntDisable();
+            MAP_SysTickDisable();
 
             // Disable all processor interrupts.  Instead of disabling them
             // one at a time, a direct write to NVIC is done to disable all
@@ -147,7 +148,10 @@ unsigned long BL_UserCheckUpdateHook(void)
 
             // Return control to the boot loader.  This is a call to the SVC
             // handler in the boot loader.
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Warray-bounds"
             (*((void (*)(void))(*(uint32_t *)0x2c)))();
+            #pragma GCC diagnostic pop
         }
     }
 
