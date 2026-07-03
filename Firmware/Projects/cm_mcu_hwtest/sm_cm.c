@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 26 Jun 2026
+// Rev.: 02 Jul 2026
 //
 // Functions for interfacing the Service Module and the Command Module in the
 // hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
@@ -42,7 +42,7 @@ int SmCm_PowerHandshakingInit(void)
 
     // Check if the message for the SM-CM handshaking are enabled.
     #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
-    #warning "Messages for the SM-CM handshaking are turned ON."
+    #warning "Messages for the SM-CM handshaking are turned ON!"
     #warning "This is only for testing and debugging. Turn it OFF for normal operation!"
     #endif
 

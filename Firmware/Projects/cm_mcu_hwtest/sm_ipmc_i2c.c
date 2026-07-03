@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 26 Jun 2026
-// Rev.: 26 Jun 2026
+// Rev.: 02 Jul 2026
 //
 // Functions for providing slow control data for the Service Module IPMC from
 // the Command Module MCU as an I2C slave in the hardware test firmware running
@@ -34,7 +34,10 @@ uint8_t g_ui8I2cIpmcData[I2C_SLAVE_IPMC_DATA_NUM];
 // signals.
 int SmIpmcI2cInit(void)
 {
-    // Initialize the I2C0 slave functionality.
+    // Enable the I2C slave module.
+    I2CSlaveEnable(I2C_SLAVE_IPMC_BASE);
+
+    // Initialize the I2C slave functionality.
     I2CSlaveInit(I2C_SLAVE_IPMC_BASE, I2C_SLAVE_IPMC_SLAVE_ADR);
 
     // Register the interrupt handler routine.
@@ -42,6 +45,11 @@ int SmIpmcI2cInit(void)
 
     // Enable the I2C slave data interrupt source.
     I2CSlaveIntEnableEx(I2C_SLAVE_IPMC_BASE, I2C_SLAVE_INT_DATA);
+
+    // Disable the I2C master interrupts, as they will interfere with the slave
+    // interrupts and cause an infinite jump into the ISR function
+    // IntHandlerSmIpmcI2c, which will cause the MCU to hang!
+    I2CMasterIntDisable(I2C_SLAVE_IPMC_BASE);
 
     // Check if the I2C slave connected to the SM IPMC is enabled.
     #ifndef I2C_SLAVE_IPMC_ENABLE
@@ -51,15 +59,16 @@ int SmIpmcI2cInit(void)
 
     // Check if the messages for the I2C access from the SM IPMC are enabled.
     #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
-    #warning "Messages for the I2C access from the SM IPMC are turned ON."
+    #warning "Messages for the I2C access from the SM IPMC are turned ON!"
     #warning "This is only for testing and debugging. Turn it OFF for normal operation!"
     #endif
 
-    // Enable internal loopback routing (bypasses GPIO pins) for testing and debugging.
+    // Enable internal loopback routing (bypasses GPIO pins) for testing and
+    // debugging.
     // CAUTION: This must be *OFF* for normal operation!
     #ifdef I2C_SLAVE_IPMC_LOOPBACK
     I2CLoopbackEnable(I2C_SLAVE_IPMC_BASE);
-    #warning "Internal I2C loopback is turned ON for the I2C bus connected to the SM IPMC."
+    #warning "Internal I2C loopback is turned ON for the I2C bus connected to the SM IPMC!"
     #warning "This is only for testing and debugging. Turn it OFF for normal operation!"
     #warning "CAUTION: The I2C bus connected to the SM IPMC *WILL NOT WORK*!"
     #endif
@@ -84,9 +93,9 @@ int SmIpmcI2cData(char *pcCmd, char *pcParam)
 
     // Get the current SM IPMC data values.
     if (pcIpmcData == NULL) {
-        UARTprintf("%s: ", UI_STR_OK);
+        UARTprintf("%s: Current SM IPMC data values:", UI_STR_OK);
         for (i = 0; i < I2C_SLAVE_IPMC_DATA_NUM; i++) {
-            UARTprintf("0x%02x ", g_ui8I2cIpmcData[i]);
+            UARTprintf(" 0x%02x", g_ui8I2cIpmcData[i]);
         }
     // Set new SM IPMC data values.
     } else {
@@ -101,6 +110,10 @@ int SmIpmcI2cData(char *pcCmd, char *pcParam)
             if (i >= I2C_SLAVE_IPMC_DATA_NUM) {
                 break;
             }
+        }
+        UARTprintf("%s: SM IPMC data values set to:", UI_STR_OK);
+        for (i = 0; i < I2C_SLAVE_IPMC_DATA_NUM; i++) {
+            UARTprintf(" 0x%02x", g_ui8I2cIpmcData[i]);
         }
     }
     return status;
@@ -129,13 +142,16 @@ void IntHandlerSmIpmcI2c(void)
         ui32Req = I2CSlaveStatus(I2C_SLAVE_IPMC_BASE);
 
         // Case 1: Master sent data to the slave (receive).
-        if (ui32Req == I2C_SLAVE_ACT_RREQ) {
+        if ((ui32Req == I2C_SLAVE_ACT_RREQ) || (ui32Req == I2C_SLAVE_ACT_RREQ_FBR)) {
             ui8ReceivedByte = I2CSlaveDataGet(I2C_SLAVE_IPMC_BASE);
             #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
-            UARTprintf("\nI2C write access from the SM IPMC. Data = 0x%02x.", ui8ReceivedByte);
+            UARTprintf("I2C write access from the SM IPMC. Data = 0x%02x.\n", ui8ReceivedByte);
             #endif
-            ui8RegAdr = ui8ReceivedByte;
-        // Case 2: Master requested data from the slave (Transmit)
+            // Use only the first byte received (FBR) and ignore the other bytes.
+            if (ui32Req == I2C_SLAVE_ACT_RREQ_FBR) {
+                ui8RegAdr = ui8ReceivedByte;
+            }
+        // Case 2: Master requested data from the slave (transmit).
         } else if (ui32Req == I2C_SLAVE_ACT_TREQ) {
             switch (ui8RegAdr) {
                 case I2C_SLAVE_IPMC_REG_STATUS:
@@ -161,7 +177,7 @@ void IntHandlerSmIpmcI2c(void)
                     break;
             }
             #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
-            UARTprintf("\nI2C read access from the SM IPMC. Register address = 0x%02x, data = 0x%02x.", ui8RegAdr, ui8TransmitByte);
+            UARTprintf("I2C read access from the SM IPMC. Register address = 0x%02x, data = 0x%02x.\n", ui8RegAdr, ui8TransmitByte);
             #endif
 
             // Send the requested data to the CM IPMC.
@@ -171,10 +187,5 @@ void IntHandlerSmIpmcI2c(void)
             ui8RegAdr++;
         }
     }
-
-    #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
-    // Show new command prompt.
-    UARTprintf("%s", UI_COMMAND_PROMPT);
-    #endif
 }
 

@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 26 Jun 2026
+// Rev.: 02 Jul 2026
 //
 // Header file of the firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -21,7 +21,7 @@
 
 #define FW_NAME                     "cm_mcu_hwtest"
 #define FW_VERSION                  "0.0.11"
-#define FW_RELEASEDATE              "26 Jun 2026"
+#define FW_RELEASEDATE              "02 Jul 2026"
 
 
 
@@ -65,12 +65,13 @@
 #define I2C_MASTER_NUM              8
 
 // I2C slave connected to the SM IPMC.
+// Note: This must be *ON* for normal operation.
 #define I2C_SLAVE_IPMC_ENABLE
 // Enable a message when the SM IPMC accesses the CM MCU I2C slave.
-// Note: This is for debugging must be *off* by default.
+// Note: This is for debugging only and must be *OFF* for normal operation.
 //#define SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
 // Enable the loopback mode on the I2C bus connected to the SM IPMC.
-// Note: This is for debugging *must* be *off* by default.
+// Note: This is for debugging only and *must* be *OFF* for normal operation.
 //#define I2C_SLAVE_IPMC_LOOPBACK
 
 // QSSI parameters.
@@ -98,9 +99,11 @@
 // Enable power up/down handshaking between the Service Module and the Command
 // Module using the PWR_EN (drive by the SM) and the READY (driven by the CM)
 // signals (SM-CM handshaking).
+// Note: This must be *ON* for normal operation.
 #define SM_CM_POWER_HANDSHAKING_ENABLE
 // Show a message when the SM-CM handshaking gets activated.
-// Note: This message is for debugging should be *off* by default.
+// Note: This message is for debugging only and must be *OFF* for normal
+//       operation.
 //#define SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
 
 

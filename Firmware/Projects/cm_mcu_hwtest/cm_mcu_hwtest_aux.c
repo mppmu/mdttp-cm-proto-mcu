@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 09 Jun 2026
+// Rev.: 03 Jul 2026
 //
 // Auxiliary functions of the hardware test firmware running on the ATLAS MDT
 // Trigger Processor (TP) Command Module (CM) prototype MCU.
@@ -139,8 +139,7 @@ int JumpToBootLoader(char *pcCmd, char *pcParam)
         HWREG(NVIC_DIS2) = 0xffffffff;
         HWREG(NVIC_DIS3) = 0xffffffff;
 
-        // Return control to the boot loader.  This is a call to the SVC
-        // handler in the boot loader.
+        // Lauch the boot loader.
         ROM_UpdateUART();
     } else {
         UARTprintf("Operation aborted.");

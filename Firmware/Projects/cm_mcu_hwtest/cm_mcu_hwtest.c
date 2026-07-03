@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 26 Jun 2026
+// Rev.: 02 Jul 2026
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -54,6 +54,7 @@ void __error__(char *pcFilename, uint32_t ui32Line)
 // Function prototypes.
 void Help(void);
 void Info(void);
+void CheckConfig(void);
 
 
 
@@ -162,7 +163,11 @@ int main(void)
     UARTprintf("MDT-TP CM prototype MCU `%s' firmware version %s.\n", FW_NAME, FW_VERSION);
     UARTprintf("Release date: %s\n", FW_RELEASEDATE);
     UARTprintf("*******************************************************************************\n\n");
-    UARTprintf("Type `help' to get an overview of available commands.\n");
+    UARTprintf("Type `help' to get an overview of available commands.");
+
+    // Check the configuration of the firmware build.
+    CheckConfig();
+    UARTprintf("\n");
 
     GpioSet_LedMcuUser(ui8McuUserLeds |= LED_USER_1_GREEN);
 
@@ -261,5 +266,37 @@ void Info(void)
     UARTprintf("MDT-TP CM prototype MCU `%s' firmware version %s.\n", FW_NAME, FW_VERSION);
     UARTprintf("Release date: %s\n", FW_RELEASEDATE);
     UARTprintf("It was compiled using gcc %s at %s on %s.", __VERSION__, __TIME__, __DATE__);
+
+    CheckConfig();
+}
+
+
+
+// Check the build configuration of the firmware.
+void CheckConfig(void)
+{
+    // Show warnings if the configuration deviates from the standard.
+    #if !defined(I2C_SLAVE_IPMC_ENABLE) || defined(SM_IPMC_I2C_ACCESS_SHOW_MESSAGE) || defined(I2C_SLAVE_IPMC_LOOPBACK) || \
+    !defined(SM_CM_POWER_HANDSHAKING_ENABLE) || defined(SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE)
+    UARTprintf("\n");
+    UARTprintf("\n");
+    UARTprintf("%s: This firmware was built using a non-standard configuration!\n", UI_STR_WARNING);
+    UARTprintf("%s: It deviates in the following points:\n", UI_STR_WARNING);
+    #endif
+    #ifndef I2C_SLAVE_IPMC_ENABLE
+    UARTprintf("%s: - The I2C slave connected to the SM IPMC is turned OFF! Turn it ON for normal operation!\n", UI_STR_WARNING);
+    #endif
+    #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
+    UARTprintf("%s: - Messages for the I2C access from the SM IPMC are turned ON!\n", UI_STR_WARNING);
+    #endif
+    #ifdef I2C_SLAVE_IPMC_LOOPBACK
+    UARTprintf("%s: - Internal I2C loopback is turned ON for the I2C bus connected to the SM IPMC! The physical I2C bus *WILL NOT WORK*!\n", UI_STR_WARNING);
+    #endif
+    #ifndef SM_CM_POWER_HANDSHAKING_ENABLE
+    UARTprintf("%s: - The SM-CM handshaking is turned OFF! Turn it ON for normal operation!\n", UI_STR_WARNING);
+    #endif
+    #ifdef SM_CM_POWER_HANDSHAKING_SHOW_MESSAGE
+    UARTprintf("%s: - Messages for the SM-CM handshaking are turned ON!\n", UI_STR_WARNING);
+    #endif
 }
 
