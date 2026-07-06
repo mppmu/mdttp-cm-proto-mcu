@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 02 Jul 2026
+// Rev.: 06 Jul 2026
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -247,7 +247,7 @@ void Help(void)
     UARTprintf("  i2c-bw  PORT SLV-ADR DATA [,DATA]   I2C burst write. Send chunks of DATA.\n");
     UARTprintf("  i2c-det PORT [MODE]                 I2C detect devices (MODE: 0 = auto,\n");
     UARTprintf("                                          1 = quick command, 2 = read).\n");
-    UARTprintf("  i2c-sm  [DATA]                      Get/Set the data for the SM IPMC via I2C.");
+    UARTprintf("  i2c-sm  [DATA]                      Get/Set the data for the SM IPMC via I2C.\n");
     UARTprintf("  info                                Show information about this firmware.\n");
     UARTprintf("  qssi    PORT MODE RW END NUM|DATA   QSSI/QSPI access (MODE: 0 = SSI, 1 = QSSI;\n");
     UARTprintf("                                      END: 0 = no, 1 = yes; RW: 0 = wr, 1 = rd).\n");
