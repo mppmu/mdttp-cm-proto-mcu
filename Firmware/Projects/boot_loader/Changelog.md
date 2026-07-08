@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Bootloader
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
 Date: 06 Oct 2022  
-Rev.: 03 Jul 2026  
+Rev.: 08 Jul 2026  
 
 
 
@@ -13,7 +13,7 @@ Bootloader Versions
   - Initial version based on the MCU bootloader of the MDT-TP CM demonstrator.
 * 0.0.2 - 03 Jun 2022
   - Updated user LED assignment and added the power control pins.
-* 0.0.3 - 03 Jul 2026
+* 0.0.3 - 08 Jul 2026
   - Added a new command "i" to show information about the boot loader.
   - Included the gcc version as well as the compile date and time in the boot
     loader information.

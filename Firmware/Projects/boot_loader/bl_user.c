@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 27 May 2022
-// Rev.: 03 Jul 2026
+// Rev.: 08 Jul 2026
 //
 // User functions of the boot loader running on the ATLAS MDT Trigger Processor
 // (TP) Command Module (CM) prototype MCU.
@@ -166,7 +166,7 @@ int BL_UserMenu(uint32_t ui32UartBase)
                 return 0;
             case 'f':
             case 'F':
-                UARTprint(ui32UartBase, "Waiting for firmware data...\r\n");
+                UARTprint(ui32UartBase, "Entering firmware update mode.\r\n");
                 // Wait some time for the UART to send out the message.
                 DelayUs(1e4);
                 return 1;

@@ -3,7 +3,7 @@ Changelog for the MDT-TP CM Prototype MCU Firmware for Hardware Testing
 Auth: M. Fras, Electronics Division, MPI for Physics, Munich  
 Mod.: M. Fras, Electronics Division, MPI for Physics, Munich  
 Date: 06 Oct 2022  
-Rev.: 06 Jul 2026  
+Rev.: 08 Jul 2026  
 
 
 
@@ -45,7 +45,7 @@ Firmware Versions
   - Corrected the control of the four logical power domains (FPGA core, FPGA
     IO, clock/misc, FireFly).
   - Removed redundant code in SM-CM interface (sm_cm.c).
-* 0.0.11 - 06 Jul 2026
+* 0.0.11 - 08 Jul 2026
   - Added I2C slave function on I2C bus 7 which is connected to the SM IPMC.
   - Switched off the messages on the UART for the SM-CM interface.
   - Added warning messages at compile time for non-standard configurations.

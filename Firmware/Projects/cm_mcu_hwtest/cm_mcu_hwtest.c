@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 03 Jun 2022
-// Rev.: 06 Jul 2026
+// Rev.: 08 Jul 2026
 //
 // Hardware test firmware running on the ATLAS MDT Trigger Processor (TP)
 // Command Module (CM) prototype MCU.
@@ -184,17 +184,12 @@ int main(void)
             continue;
         } else if (!strcasecmp(pcUartCmd, "help")) {
             Help();
-        } else if (!strcasecmp(pcUartCmd, "info")) {
-            Info();
-        // Delay execution for a given number of microseconds.
-        } else if (!strcasecmp(pcUartCmd, "delay")) {
-            DelayUsCmd(pcUartCmd, pcUartParam);
-        // Reset the MCU.
-        } else if (!strcasecmp(pcUartCmd, "reset")) {
-            McuReset(pcUartCmd, pcUartParam);
         // Enter the boot loader for firmware update over UART.
         } else if (!strcasecmp(pcUartCmd, "bootldr")) {
             JumpToBootLoader(pcUartCmd, pcUartParam);
+        // Delay execution for a given number of microseconds.
+        } else if (!strcasecmp(pcUartCmd, "delay")) {
+            DelayUsCmd(pcUartCmd, pcUartParam);
         // GPIO based functions.
         } else if (!strcasecmp(pcUartCmd, "gpio")) {
             GpioGetSet(pcUartCmd, pcUartParam);
@@ -205,6 +200,9 @@ int main(void)
             I2CBurstWrite(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "i2c-det")) {
             I2CDetect(pcUartCmd, pcUartParam);
+        // Show information about the current firmware.
+        } else if (!strcasecmp(pcUartCmd, "info")) {
+            Info();
         // Data provided to the SM IPMC via I2C where the MCU acts as I2C slave.
         } else if (!strcasecmp(pcUartCmd, "i2c-sm")) {
             SmIpmcI2cData(pcUartCmd, pcUartParam);
@@ -213,14 +211,17 @@ int main(void)
             QssiAccess(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "qssi-s")) {
             QssiSetup(pcUartCmd, pcUartParam);
+        // Power control.
+        } else if (!strcasecmp(pcUartCmd, "power")) {
+            PowerControl(pcUartCmd, pcUartParam);
+        // Reset the MCU.
+        } else if (!strcasecmp(pcUartCmd, "reset")) {
+            McuReset(pcUartCmd, pcUartParam);
         // UART based functions.
         } else if (!strcasecmp(pcUartCmd, "uart")) {
             UartAccess(pcUartCmd, pcUartParam);
         } else if (!strcasecmp(pcUartCmd, "uart-s")) {
             UartSetup(pcUartCmd, pcUartParam);
-        // Power control.
-        } else if (!strcasecmp(pcUartCmd, "power")) {
-            PowerControl(pcUartCmd, pcUartParam);
         // Unknown command.
         } else {
             UARTprintf("ERROR: Unknown command `%s'.", pcUartCmd);
@@ -249,13 +250,13 @@ void Help(void)
     UARTprintf("                                          1 = quick command, 2 = read).\n");
     UARTprintf("  i2c-sm  [DATA]                      Get/Set the data for the SM IPMC via I2C.\n");
     UARTprintf("  info                                Show information about this firmware.\n");
+    UARTprintf("  power   DOMAIN [MODE]               Power domain control (0 = down, 1 = up).\n");
     UARTprintf("  qssi    PORT MODE RW END NUM|DATA   QSSI/QSPI access (MODE: 0 = SSI, 1 = QSSI;\n");
     UARTprintf("                                      END: 0 = no, 1 = yes; RW: 0 = wr, 1 = rd).\n");
     UARTprintf("  qssi-s  PORT FREQ                   Set up the QSSI port.\n");
     UARTprintf("  reset                               Reset the MCU.\n");
     UARTprintf("  uart    PORT R/W NUM|DATA           UART access (R/W: 0 = write, 1 = read).\n");
-    UARTprintf("  uart-s  PORT BAUD [PARITY] [LOOP]   Set up the UART port.\n");
-    UARTprintf("  power   DOMAIN [MODE]               Power domain control (0 = down, 1 = up).");
+    UARTprintf("  uart-s  PORT BAUD [PARITY] [LOOP]   Set up the UART port.");
 }
 
 
