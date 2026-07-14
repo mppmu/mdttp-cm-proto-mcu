@@ -2,7 +2,7 @@
 // Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 // Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 // Date: 26 Jun 2026
-// Rev.: 02 Jul 2026
+// Rev.: 14 Jul 2026
 //
 // Functions for providing slow control data for the Service Module IPMC from
 // the Command Module MCU as an I2C slave in the hardware test firmware running
@@ -142,17 +142,18 @@ void IntHandlerSmIpmcI2c(void)
         ui32Req = I2CSlaveStatus(I2C_SLAVE_IPMC_BASE);
 
         // Case 1: Master sent data to the slave (receive).
-        if ((ui32Req == I2C_SLAVE_ACT_RREQ) || (ui32Req == I2C_SLAVE_ACT_RREQ_FBR)) {
+        if ((ui32Req & I2C_SLAVE_ACT_RREQ) || (ui32Req & I2C_SLAVE_ACT_RREQ_FBR)) {
             ui8ReceivedByte = I2CSlaveDataGet(I2C_SLAVE_IPMC_BASE);
             #ifdef SM_IPMC_I2C_ACCESS_SHOW_MESSAGE
             UARTprintf("I2C write access from the SM IPMC. Data = 0x%02x.\n", ui8ReceivedByte);
             #endif
             // Use only the first byte received (FBR) and ignore the other bytes.
-            if (ui32Req == I2C_SLAVE_ACT_RREQ_FBR) {
+            if (ui32Req & I2C_SLAVE_ACT_RREQ_FBR) {
                 ui8RegAdr = ui8ReceivedByte;
             }
+        }
         // Case 2: Master requested data from the slave (transmit).
-        } else if (ui32Req == I2C_SLAVE_ACT_TREQ) {
+        if (ui32Req & I2C_SLAVE_ACT_TREQ) {
             switch (ui8RegAdr) {
                 case I2C_SLAVE_IPMC_REG_STATUS:
                     ui8TransmitByte = g_ui8I2cIpmcData[0];
