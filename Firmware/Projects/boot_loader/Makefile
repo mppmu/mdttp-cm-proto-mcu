@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 26 Aug 2020
-# Rev.: 17 Jun 2026
+# Rev.: 16 Oct 2026
 #
 # Makefile for the serial boot loader running on the TI Tiva TM4C1290 MCU on
 # the ATLAS MDT Trigger Processor (TP) Command Module (CM).
@@ -97,7 +97,9 @@ IPATH += $(COMMON_LINK)/utils
 # Rules for building the project.
 SCATTERgcc_$(PROJECT)=$(TIVAWARE)/boot_loader/bl_link.ld
 ENTRY_$(PROJECT)=ResetISR
-CFLAGSgcc=-DTARGET_IS_TM4C129_RA2
+# Note: STACK_SIZE in bl_config.h is defined in words with 4 bytes per word.
+#       I.e. "#define STACK_SIZE 48" means a stack of 192 bytes.
+CFLAGSgcc=-DTARGET_IS_TM4C129_RA2 -fstack-usage -Wstack-usage=96
 
 
 

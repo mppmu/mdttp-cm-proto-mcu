@@ -2,7 +2,7 @@
 # Auth: M. Fras, Electronics Division, MPI for Physics, Munich
 # Mod.: M. Fras, Electronics Division, MPI for Physics, Munich
 # Date: 03 Jun 2022
-# Rev.: 26 Jun 2026
+# Rev.: 16 Oct 2026
 #
 # Makefile for the firmware running on the ATLAS MDT Trigger Processor (TP)
 # Command Module (CM) prototype MCU.
@@ -105,7 +105,9 @@ IPATH += $(COMMON_LINK)/utils
 # Rules for building the project.
 SCATTERgcc_$(PROJECT)=$(PROJECT).ld
 ENTRY_$(PROJECT)=ResetISR
-CFLAGSgcc=-DTARGET_IS_TM4C129_RA2
+# Note: The stack size in startup_gcc.c is defined in words with 4 bytes per word.
+#       I.e. "static uint32_t pui32Stack[128];" means a stack of 512 bytes.
+CFLAGSgcc=-DTARGET_IS_TM4C129_RA2 -fstack-usage -Wstack-usage=256
 
 # Minicom configuration.
 MINICOM_CONFIG = cm_mcu
